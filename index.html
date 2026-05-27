@@ -386,6 +386,10 @@
             color: var(--text-muted);
         }
 
+        .mobile-placeholder {
+            display: none;
+        }
+
         textarea.text-input {
             min-height: 100px;
             resize: vertical;
@@ -1285,6 +1289,19 @@
             .text-size-btn,
             .segmented-btn {
                 flex: 1 1 auto;
+            }
+
+            .text-input::placeholder,
+            .terminal-input::placeholder {
+                color: transparent;
+            }
+
+            .mobile-placeholder {
+                display: block;
+                color: var(--text-muted);
+                font-size: 15px;
+                line-height: 1.35;
+                margin-top: 7px;
             }
 
             .option-cycle {
@@ -2523,6 +2540,17 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        function setupMobilePlaceholderHints() {
+            document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(field => {
+                if (field.nextElementSibling?.classList.contains('mobile-placeholder')) return;
+
+                const hint = document.createElement('p');
+                hint.className = 'mobile-placeholder';
+                hint.textContent = field.getAttribute('placeholder');
+                field.insertAdjacentElement('afterend', hint);
+            });
+        }
+
         function restartGame() {
             location.assign(location.href.split('#')[0]);
         }
@@ -2548,6 +2576,7 @@
             updateAvatarPreview();
             updateRepairedInterface();
             initializeDesignGrid();
+            setupMobilePlaceholderHints();
             ['code-1', 'code-2', 'code-3'].forEach(id => {
                 document.getElementById(id)?.addEventListener('input', updateDesignGrid);
             });
