@@ -1,0 +1,3820 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nessuna corrispondenza</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f6f2e9;
+            --bg-secondary: rgba(255, 255, 255, 0.94);
+            --bg-tertiary: #eee8dc;
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --text-primary: #141414;
+            --text-secondary: #333333;
+            --text-muted: #6f6a60;
+            --accent-cyan: #1f6fd1;
+            --accent-magenta: #b5408f;
+            --accent-red: #c93636;
+            --accent-green: #197a4f;
+            --accent-yellow: #9a6a00;
+            --border-color: #1b1b1b;
+            --font-body: 'Pixelify Sans', system-ui, sans-serif;
+            --font-pixel: 'Press Start 2P', 'Pixelify Sans', monospace;
+            --room-image: url('assets/rooms/background.png');
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-primary);
+            background-image:
+                linear-gradient(90deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84) 58%, rgba(255, 255, 255, 0.45)),
+                var(--room-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            transition: background-image 0.35s ease;
+        }
+
+        body[data-room="intro"],
+        body[data-room="1"] {
+            --room-image: url('assets/rooms/background.png');
+        }
+
+        body[data-room="2"] {
+            --room-image: url('assets/rooms/room-accessibility.png');
+        }
+
+        body[data-room="3"] {
+            --room-image: url('assets/rooms/room-dialogue.png');
+        }
+
+        body[data-room="4"] {
+            --room-image: url('assets/rooms/room-inventory.png');
+        }
+
+        body[data-room="5"],
+        body[data-room="final"] {
+            --room-image: url('assets/rooms/room-design.png');
+        }
+
+        /* Scanlines overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Main container */
+        .game-container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border-left: 3px solid var(--border-color);
+            border-right: 3px solid var(--border-color);
+            box-shadow: 10px 0 0 rgba(0, 0, 0, 0.08), -10px 0 0 rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(2px);
+        }
+
+        /* Header */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .nav-back {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-family: var(--font-pixel);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-back:hover:not(:disabled) {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .nav-back:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .logo {
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0;
+        }
+
+        .progress-indicator {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .progress-dot.completed {
+            background: var(--accent-green);
+        }
+
+        /* Help button */
+        .help-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: var(--font-pixel);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .read-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 86px;
+            min-width: 78px;
+            height: 44px;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: var(--font-pixel);
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .read-btn:hover,
+        .read-btn.speaking {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .help-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        /* Help modal */
+        .help-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .help-modal.show {
+            display: flex;
+        }
+
+        .help-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .help-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .help-content h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-family: var(--font-pixel);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .help-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Level container */
+        .level {
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .level.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography */
+        .level-tag {
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .level-title {
+            font-size: 30px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+
+        .narrative {
+            font-size: 19px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .narrative .highlight {
+            color: var(--accent-cyan);
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid var(--accent-cyan);
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--accent-cyan) }
+        }
+
+        .level.active .level-tag,
+        .level.active .level-title,
+        .level.active .intro-title {
+            animation: typeClip 0.9s steps(18, end) both;
+        }
+
+        .level.active .level-title {
+            animation-delay: 0.08s;
+        }
+
+        .level.active .narrative {
+            animation: typeClip 1.15s steps(34, end) 0.16s both;
+        }
+
+        @keyframes typeClip {
+            from { clip-path: inset(0 100% 0 0); }
+            to { clip-path: inset(0 0 0 0); }
+        }
+
+        /* Form elements */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .text-input[aria-invalid="true"],
+        .terminal-input[aria-invalid="true"] {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 3px rgba(201, 54, 54, 0.12);
+        }
+
+        .text-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .mobile-placeholder {
+            display: none;
+        }
+
+        textarea.text-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            letter-spacing: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #1859a8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-error {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 11px;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .validation-message {
+            margin-top: 18px;
+            padding: 12px 14px;
+            color: var(--accent-red);
+            background: rgba(201, 54, 54, 0.08);
+            border: 1px solid var(--accent-red);
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .voice-input-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 8px;
+            padding: 7px 10px;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-family: var(--font-pixel);
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .voice-input-btn:hover,
+        .voice-input-btn.listening {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            background: rgba(201, 54, 54, 0.08);
+        }
+
+        .voice-input-btn.listening {
+            animation: micPulse 1s steps(2, end) infinite;
+        }
+
+        @keyframes micPulse {
+            50% { opacity: 0.55; }
+        }
+
+        /* Error/Glitch effects */
+        .error-box {
+            background: rgba(255, 51, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .error-code {
+            font-family: var(--font-pixel);
+            color: var(--accent-red);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes glitchColor {
+            0% { text-shadow: 2px 0 var(--accent-cyan), -2px 0 var(--accent-magenta); }
+            25% { text-shadow: -2px 0 var(--accent-cyan), 2px 0 var(--accent-magenta); }
+            50% { text-shadow: 2px 2px var(--accent-cyan), -2px -2px var(--accent-magenta); }
+            75% { text-shadow: -2px 2px var(--accent-cyan), 2px -2px var(--accent-magenta); }
+            100% { text-shadow: 2px 0 var(--accent-cyan), -2px 0 var(--accent-magenta); }
+        }
+
+        .glitch {
+            animation: glitch 0.3s infinite, glitchColor 0.3s infinite;
+        }
+
+        .glitch-container {
+            position: relative;
+        }
+
+        .glitch-container::before,
+        .glitch-container::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch-container::before {
+            color: var(--accent-cyan);
+            animation: glitch 0.3s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            transform: translate(-3px);
+        }
+
+        .glitch-container::after {
+            color: var(--accent-magenta);
+            animation: glitch 0.3s infinite reverse;
+            clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+            transform: translate(3px);
+        }
+
+        /* Level 2 - Broken interface */
+        .broken-interface {
+            padding: 30px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .fleeing-button {
+            position: relative;
+            transition: transform 0.08s ease-out;
+            touch-action: none;
+            will-change: transform;
+        }
+
+        .mobile-flee-hint {
+            display: none;
+            margin-top: 14px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        @media (hover: none), (pointer: coarse) {
+            .broken-interface {
+                min-height: 330px;
+                overflow: hidden;
+            }
+
+            .mobile-flee-hint {
+                display: block;
+            }
+        }
+
+        .inverted-cursor {
+            cursor: none;
+        }
+
+        .dyslexia-text {
+            font-family: 'Comic Sans MS', cursive;
+            letter-spacing: 3px;
+            word-spacing: 8px;
+            transform: rotate(0.5deg);
+        }
+
+        .dyslexia-text span {
+            display: inline-block;
+        }
+
+        .dyslexia-text span:nth-child(odd) {
+            transform: rotate(2deg) translateY(2px);
+        }
+
+        .dyslexia-text span:nth-child(even) {
+            transform: rotate(-1deg) translateY(-1px);
+        }
+
+        /* Settings panel */
+        .settings-panel {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .settings-title {
+            font-family: var(--font-pixel);
+            font-size: 12px;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .setting-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-option:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .setting-toggle {
+            width: 44px;
+            height: 24px;
+            background: var(--bg-primary);
+            border: 0;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .setting-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .setting-toggle.active {
+            background: var(--accent-cyan);
+        }
+
+        .setting-toggle.active::after {
+            left: 23px;
+            background: white;
+        }
+
+        .setting-option-stack {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .text-size-options,
+        .segmented {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .text-size-btn,
+        .segmented-btn,
+        .cycle-btn,
+        .relic-option {
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .text-size-btn {
+            min-width: 78px;
+            padding: 8px 10px;
+            font-family: var(--font-pixel);
+        }
+
+        .text-size-btn small {
+            display: block;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        .text-size-btn[data-size="small"] .aa-icon { font-size: 13px; }
+        .text-size-btn[data-size="medium"] .aa-icon { font-size: 17px; }
+        .text-size-btn[data-size="large"] .aa-icon { font-size: 22px; }
+
+        .text-size-btn.active,
+        .segmented-btn.active,
+        .relic-option.active {
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+            background: rgba(0, 212, 255, 0.12);
+        }
+
+        .repaired-interface {
+            background: rgba(0, 212, 255, 0.07);
+            border: 1px solid rgba(0, 212, 255, 0.28);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .repaired-interface.large-text {
+            font-size: 19px;
+        }
+
+        .repaired-interface.small-text {
+            font-size: 13px;
+        }
+
+        .repaired-interface.high-contrast {
+            background: #ffffff;
+            color: #050505;
+            border-color: #ffffff;
+        }
+
+        /* Level 1 - Avatar creator */
+        .avatar-creator {
+            display: grid;
+            grid-template-columns: minmax(220px, 300px) 1fr;
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 30px;
+        }
+
+        .avatar-stage,
+        .preset-card,
+        .level-preview {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .avatar-frame {
+            height: 280px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(238,232,220,0.98));
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .avatar-frame img,
+        .preset-avatar,
+        .dialogue-avatar {
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .avatar-frame img {
+            width: 100%;
+            height: 100%;
+            padding: 12px;
+            filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.12));
+        }
+
+        .avatar-description,
+        .preset-description,
+        .action-caption {
+            color: var(--text-secondary);
+            font-size: 17px;
+            line-height: 1.6;
+            margin-top: 14px;
+        }
+
+        .avatar-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .segmented-btn {
+            padding: 10px 14px;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+        }
+
+        .option-cycle {
+            display: grid;
+            grid-template-columns: 42px 1fr 42px;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .option-kicker {
+            display: block;
+            color: var(--text-muted);
+            font-family: var(--font-pixel);
+            font-size: 8px;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .cycle-btn {
+            height: 42px;
+            font-size: 18px;
+        }
+
+        .avatar-pool-control[hidden] {
+            display: none;
+        }
+
+        .preset-card {
+            display: grid;
+            grid-template-columns: 132px 1fr;
+            gap: 18px;
+            align-items: center;
+            margin: 24px 0;
+        }
+
+        .preset-avatar {
+            width: 132px;
+            height: 132px;
+            background: transparent;
+            border-radius: 6px;
+        }
+
+        .recovery-panel {
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
+                repeating-linear-gradient(90deg, transparent 0 15px, rgba(31,111,209,0.08) 15px 16px);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 24px 0;
+            padding: 22px;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+        }
+
+        .recovery-scene {
+            display: grid;
+            grid-template-columns: minmax(210px, 0.8fr) minmax(240px, 1.2fr);
+            gap: 24px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .trash-station {
+            position: relative;
+            min-height: 255px;
+            display: grid;
+            place-items: center;
+            padding-top: 26px;
+        }
+
+        .trash-label {
+            position: absolute;
+            top: 0;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--accent-red);
+        }
+
+        .trash-can {
+            position: relative;
+            width: 142px;
+            height: 162px;
+            filter: drop-shadow(8px 9px 0 rgba(0,0,0,0.12));
+        }
+
+        .trash-lid {
+            position: absolute;
+            top: 16px;
+            left: 4px;
+            width: 134px;
+            height: 22px;
+            background: #454a4f;
+            border: 4px solid #17191b;
+            box-shadow: inset 0 5px #747b80;
+        }
+
+        .trash-lid::before {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 16px;
+            left: 39px;
+            top: -17px;
+            background: #454a4f;
+            border: 4px solid #17191b;
+        }
+
+        .trash-body {
+            position: absolute;
+            top: 38px;
+            left: 14px;
+            width: 114px;
+            height: 118px;
+            display: flex;
+            justify-content: space-evenly;
+            padding-top: 18px;
+            background: #596066;
+            border: 4px solid #17191b;
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+            box-shadow: inset 0 8px #858c91;
+        }
+
+        .trash-body i {
+            width: 8px;
+            height: 78px;
+            background: #31363a;
+            border: 2px solid #1d2022;
+        }
+
+        .discarded-avatar {
+            position: absolute;
+            top: 45px;
+            z-index: 2;
+            width: 112px;
+            padding: 7px;
+            text-align: center;
+            background: rgba(255,255,255,0.95);
+            border: 2px solid var(--accent-red);
+            border-radius: 4px;
+            cursor: grab;
+            box-shadow: 4px 4px 0 rgba(201,54,54,0.2);
+            animation: discardedGlitch 1.8s steps(2, end) infinite;
+        }
+
+        .discarded-avatar:focus-visible { outline: 3px solid var(--accent-cyan); }
+        .discarded-avatar:active { cursor: grabbing; }
+
+        .discarded-avatar img {
+            display: block;
+            width: 92px;
+            height: 92px;
+            object-fit: contain;
+            margin: auto;
+            filter: saturate(0.55) contrast(1.3);
+        }
+
+        .discarded-avatar span {
+            display: block;
+            overflow: hidden;
+            color: var(--accent-red);
+            font-family: var(--font-pixel);
+            font-size: 6px;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes discardedGlitch {
+            0%, 84%, 100% { transform: translate(0); clip-path: inset(0); }
+            88% { transform: translate(-5px, 2px); clip-path: inset(18% 0 42% 0); }
+            92% { transform: translate(4px, -2px); clip-path: inset(56% 0 9% 0); }
+        }
+
+        .restore-target {
+            position: relative;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            color: var(--text-muted);
+            text-align: center;
+            background: rgba(255,255,255,0.62);
+            border: 2px dashed var(--accent-cyan);
+            border-radius: 8px;
+            transition: 0.18s ease;
+        }
+
+        .restore-target.drag-over {
+            color: var(--accent-cyan);
+            background: rgba(31,111,209,0.12);
+            transform: scale(1.015);
+            box-shadow: 0 0 0 5px rgba(31,111,209,0.09);
+        }
+
+        .restore-target.recovered {
+            border-style: solid;
+            border-color: var(--accent-green);
+            background: rgba(25,122,79,0.07);
+        }
+
+        .restore-crosshair {
+            font-family: var(--font-pixel);
+            font-size: 42px;
+            line-height: 1;
+            color: var(--accent-cyan);
+        }
+
+        .restore-target.recovered > :not(.restored-avatar) { display: none; }
+
+        .recovery-fallback {
+            display: block;
+            margin: 18px auto 0;
+        }
+
+        .recovery-status {
+            margin-top: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            font-family: var(--font-pixel);
+            font-size: 8px;
+        }
+
+        .restored-avatar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            color: var(--accent-green);
+        }
+
+        .restored-avatar[hidden] { display: none; }
+
+        .restored-avatar img {
+            width: 132px;
+            height: 132px;
+            object-fit: contain;
+        }
+
+        .level-one-glitches {
+            display: grid;
+            grid-template-columns: 1.2fr 0.7fr 0.9fr;
+            gap: 8px;
+            margin: -8px 0 18px;
+            font-family: var(--font-pixel);
+            font-size: 7px;
+            color: var(--accent-red);
+        }
+
+        .level-one-glitches span {
+            padding: 7px;
+            overflow: hidden;
+            white-space: nowrap;
+            background: repeating-linear-gradient(90deg, rgba(201,54,54,0.12) 0 5px, transparent 5px 9px);
+            border-left: 3px solid var(--accent-red);
+            animation: glitchStrip 1.4s steps(2, end) infinite alternate;
+        }
+
+        .level-one-glitches span:nth-child(2) { color: var(--accent-cyan); border-color: var(--accent-cyan); animation-delay: -0.5s; }
+        .level-one-glitches span:nth-child(3) { animation-delay: -0.9s; }
+
+        @keyframes glitchStrip {
+            0%, 82% { transform: translateX(0); }
+            86% { transform: translateX(7px); }
+            90% { transform: translateX(-3px); }
+        }
+
+        .corrupted-preset {
+            position: relative;
+            box-shadow: 5px 0 0 rgba(181,64,143,0.18), -5px 0 0 rgba(31,111,209,0.18);
+            animation: presetCorruption 2.4s steps(1, end) infinite;
+        }
+
+        @keyframes presetCorruption {
+            0%, 88%, 100% { transform: translateX(0); filter: none; }
+            90% { transform: translateX(-3px); filter: hue-rotate(25deg); }
+            94% { transform: translateX(3px); filter: contrast(1.25); }
+        }
+
+        /* Level 3 - Dialogue */
+        .dialogue-scene {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .dialogue-layout {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .dialogue-avatar-panel {
+            text-align: center;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .dialogue-avatar {
+            width: 148px;
+            height: 148px;
+            border-radius: 6px;
+            background: transparent;
+            transform-origin: 50% 92%;
+        }
+
+        .dialogue-avatar.action-sigh {
+            animation: npcSigh 0.85s ease;
+        }
+
+        .dialogue-avatar.action-silence {
+            animation: npcSilence 1.1s ease;
+        }
+
+        .dialogue-avatar.action-smile {
+            animation: npcSmile 0.85s ease;
+        }
+
+        @keyframes npcSigh {
+            0%, 100% { transform: translateY(0) rotate(0); filter: grayscale(0); }
+            45% { transform: translateY(10px) rotate(-2deg); filter: grayscale(0.6); }
+        }
+
+        @keyframes npcSilence {
+            0%, 100% { transform: translateX(0); opacity: 1; }
+            25%, 75% { transform: translateX(-3px); opacity: 0.68; }
+            50% { transform: translateX(3px); opacity: 0.68; }
+        }
+
+        @keyframes npcSmile {
+            0%, 100% { transform: translateY(0) scale(1); }
+            45% { transform: translateY(-5px) scale(1.04); }
+        }
+
+        .dialogue-speaker {
+            font-family: var(--font-pixel);
+            font-size: 12px;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+        }
+
+        .dialogue-text {
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .dialogue-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialogue-option {
+            padding: 12px 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .dialogue-option:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        .dialogue-option.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .dialogue-result {
+            margin-top: 18px;
+            color: var(--accent-red);
+            font-family: var(--font-pixel);
+            font-size: 12px;
+            min-height: 18px;
+        }
+
+        .interrupt-panel {
+            display: none;
+            margin-top: 18px;
+            padding: 14px;
+            border: 1px dashed var(--accent-red);
+            border-radius: 6px;
+            background: rgba(201, 54, 54, 0.06);
+        }
+
+        .interrupt-panel.show {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .dialogue-text.monologuing {
+            animation: monologuePulse 0.65s steps(2, end) infinite;
+        }
+
+        @keyframes monologuePulse {
+            50% { opacity: 0.58; transform: translateX(2px); }
+        }
+
+        /* Level 4 - Inventory */
+        .inventory-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .inventory-title {
+            font-family: var(--font-pixel);
+            font-size: 14px;
+            color: var(--accent-cyan);
+        }
+
+        .inventory-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .inventory-slot {
+            aspect-ratio: 1;
+            background: var(--bg-primary);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        .inventory-slot.filled {
+            border-style: solid;
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .inventory-slot.active-relic {
+            color: var(--accent-green);
+            text-shadow: 0 0 14px rgba(0, 255, 136, 0.38);
+        }
+
+        .inventory-slot.drop-ready {
+            border-color: var(--accent-cyan);
+            background: rgba(31, 111, 209, 0.08);
+            animation: slotPulse 1s steps(2, end) infinite;
+        }
+
+        @keyframes slotPulse {
+            50% { box-shadow: 0 0 0 4px rgba(31, 111, 209, 0.12); }
+        }
+
+        .forged-token {
+            display: none;
+            width: min(230px, 46%);
+            min-height: 126px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border: 2px solid var(--accent-green);
+            border-radius: 6px;
+            background: linear-gradient(145deg, #fff, var(--bg-tertiary));
+            color: var(--accent-green);
+            font-family: var(--font-pixel);
+            font-size: 8px;
+            line-height: 1.7;
+            cursor: grab;
+            box-shadow: 5px 5px 0 rgba(25,122,79,0.15);
+        }
+
+        .forged-token.ready {
+            display: flex;
+        }
+
+        .forged-token:active { cursor: grabbing; }
+
+        .hidden-property {
+            display: none;
+            margin-top: 14px;
+            padding: 14px;
+            color: var(--accent-green);
+            background: rgba(25, 122, 79, 0.08);
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .hidden-property.show { display: block; }
+
+        .relic-picker {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(58px, 1fr));
+            gap: 10px;
+            margin: 0 0 22px;
+        }
+
+        .relic-option {
+            min-height: 104px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            overflow: hidden;
+        }
+
+        .relic-option span {
+            color: var(--text-muted);
+            font-family: var(--font-pixel);
+            font-size: 10px;
+        }
+
+        .relic-art {
+            display: block;
+            width: 72px;
+            height: 72px;
+            flex: 0 0 auto;
+            background-image: url('assets/ui/relic-sprites-v2.png');
+            background-repeat: no-repeat;
+            background-size: 500% 100%;
+            image-rendering: pixelated;
+            filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.16));
+        }
+
+        .relic-mirror { background-position: 0% 50%; }
+        .relic-key { background-position: 25% 50%; }
+        .relic-book { background-position: 50% 50%; }
+        .relic-lighthouse { background-position: 75% 50%; }
+        .relic-bridge { background-position: 100% 50%; }
+
+        .inventory-slot .relic-art {
+            width: 78%;
+            height: 78%;
+        }
+
+        .forged-token .relic-art {
+            width: 88px;
+            height: 88px;
+        }
+
+        .forge-workbench {
+            margin-top: 22px;
+            padding: 16px;
+            background:
+                linear-gradient(rgba(20,20,20,0.9), rgba(20,20,20,0.9)),
+                repeating-linear-gradient(45deg, transparent 0 8px, rgba(255,255,255,0.06) 8px 10px);
+            border: 3px double #666;
+            border-radius: 8px;
+            color: #eee;
+        }
+
+        .forge-workbench[hidden] { display: none; }
+        .forge-workbench.placed .forge-arrow { display: none; }
+
+        .workbench-title {
+            margin-bottom: 14px;
+            color: #b6e1ff;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            text-align: center;
+        }
+
+        .forge-action-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(12px, 4vw, 34px);
+        }
+
+        .forge-arrow {
+            color: #b6e1ff;
+            font-family: var(--font-pixel);
+            font-size: 24px;
+            animation: forgeArrow 0.8s steps(2, end) infinite;
+        }
+
+        @keyframes forgeArrow { 50% { transform: translateX(5px); opacity: 0.55; } }
+
+        .forge-drop-target {
+            width: min(180px, 38%);
+            min-height: 126px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #b6e1ff;
+            background: #25282a;
+            border: 2px dashed #76b9e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
+
+        .forge-drop-target > span { font-family: var(--font-pixel); font-size: 34px; }
+        .forge-drop-target > small { font-family: var(--font-pixel); font-size: 7px; }
+        .forge-drop-target.drop-ready { animation: slotPulse 1s steps(2, end) infinite; }
+        .forge-drop-target.drag-over { transform: scale(1.04); background: #18384d; box-shadow: 0 0 0 5px rgba(118,185,230,0.14); }
+        .forge-drop-target.placed { border-style: solid; border-color: #51bd88; background: #163529; }
+
+        .item-preview {
+            min-height: 48px;
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .item-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .item-card-header {
+            font-family: var(--font-pixel);
+            font-size: 11px;
+            color: var(--accent-green);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* Level 5 - Terminal */
+        .terminal {
+            background: #0d0d0d;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .terminal-header {
+            background: var(--bg-tertiary);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f57; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #28c940; }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: var(--font-pixel);
+            font-size: 14px;
+        }
+
+        .terminal-line {
+            margin-bottom: 15px;
+        }
+
+        .terminal-prompt {
+            color: var(--accent-green);
+        }
+
+        .terminal-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f8f8f2;
+            font-family: var(--font-pixel);
+            font-size: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .terminal-input::placeholder {
+            color: #9a9a9a;
+            opacity: 1;
+        }
+
+        .terminal-input:focus {
+            outline: none;
+            border-bottom-color: var(--accent-green);
+        }
+
+        .legacy-defaults {
+            margin: 18px 0 22px;
+            padding: 16px;
+            color: #c8c8c8;
+            border: 1px solid #555;
+            border-radius: 6px;
+            line-height: 2;
+        }
+
+        .legacy-defaults.overwritten {
+            color: #777;
+            text-decoration: line-through;
+            opacity: 0.55;
+        }
+
+        .terminal-input:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .accessibility-bar {
+            display: none;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin: -22px 0 28px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-family: var(--font-pixel);
+            font-size: 8px;
+        }
+
+        .accessibility-bar.show { display: flex; }
+
+        .accessibility-chip {
+            color: var(--accent-cyan);
+        }
+
+        .accessibility-secret {
+            display: none;
+            margin: 14px 0;
+            padding: 10px 12px;
+            color: var(--accent-cyan);
+            border-left: 3px solid var(--accent-cyan);
+            background: rgba(31, 111, 209, 0.07);
+        }
+
+        body[data-contrast="true"] .contrast-secret,
+        body[data-large-text="true"] .large-text-secret,
+        body[data-keys="true"] .keys-secret,
+        body[data-time="true"] .time-secret,
+        body[data-motion="true"] .motion-secret {
+            display: block;
+        }
+
+        body[data-motion="true"] :is(.glitch, .dialogue-text.monologuing, .inventory-slot.drop-ready, .forge-drop-target, .discarded-avatar, .level-one-glitches span, .corrupted-preset, .level-cell.beacon::before) {
+            animation: none !important;
+        }
+
+        .level-preview {
+            margin: 26px 0;
+            overflow: hidden;
+            background: #17272b;
+            border: 4px solid #101719;
+            box-shadow: inset 0 0 0 3px #52666a, 7px 7px 0 rgba(0,0,0,0.16);
+        }
+
+        .level-preview .settings-title { color: #b6e1ff; }
+        .level-preview > p { color: #d6dfdd !important; }
+
+        .map-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+            color: #c7d5d2;
+            font-family: var(--font-pixel);
+            font-size: 7px;
+        }
+
+        .map-legend span {
+            padding: 6px 8px;
+            background: #20363b;
+            border: 1px solid #52666a;
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0;
+            margin-top: 16px;
+            overflow: hidden;
+            border: 4px solid #0e1517;
+            background: #294a3a;
+            image-rendering: pixelated;
+        }
+
+        .level-cell {
+            position: relative;
+            aspect-ratio: 1;
+            border: 0;
+            background-color: #376044;
+            background-image:
+                linear-gradient(90deg, transparent 72%, rgba(12,41,25,0.2) 72%),
+                linear-gradient(transparent 72%, rgba(12,41,25,0.2) 72%);
+            background-size: 10px 10px;
+            transition: all 0.25s ease;
+        }
+
+        .level-cell.path {
+            background-color: #aa9270;
+            background-image:
+                linear-gradient(90deg, transparent 48%, rgba(67,54,41,0.26) 48% 54%, transparent 54%),
+                linear-gradient(transparent 48%, rgba(67,54,41,0.24) 48% 54%, transparent 54%);
+            background-size: 15px 15px;
+        }
+
+        .level-cell.water {
+            background-color: #285c73;
+            background-image: repeating-linear-gradient(0deg, transparent 0 8px, rgba(171,225,235,0.22) 8px 11px, transparent 11px 16px);
+        }
+
+        .level-cell.rock::before,
+        .level-cell.tree::before,
+        .level-cell.beacon::before,
+        .level-cell.gate::before,
+        .level-cell.bridge-tile::before,
+        .level-cell.entry::before,
+        .level-cell.exit::before {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-family: var(--font-pixel);
+            text-shadow: 2px 2px #17272b;
+        }
+
+        .level-cell.rock::before { content: '▲'; color: #788782; font-size: clamp(12px, 2.3vw, 24px); }
+        .level-cell.tree::before { content: '♠'; color: #153d28; font-size: clamp(16px, 3vw, 30px); }
+        .level-cell.entry::before { content: 'IN'; color: #fff4c2; font-size: clamp(6px, 1vw, 9px); }
+        .level-cell.exit::before { content: 'OUT'; color: #fff4c2; font-size: clamp(6px, 1vw, 9px); }
+
+        .level-cell.bridge-tile {
+            background-color: #285c73;
+            background-image: repeating-linear-gradient(90deg, #564333 0 6px, #b47c49 6px 10px, #2b211c 10px 12px);
+            filter: grayscale(0.9) brightness(0.62);
+        }
+
+        .level-grid.unlocked-1 .bridge-tile,
+        .level-grid.unlocked-2 .bridge-tile,
+        .level-grid.unlocked-3 .bridge-tile { filter: none; box-shadow: inset 0 0 0 3px #d49a5e; }
+
+        .level-cell.gate::before { content: '▥'; color: #bb4e4e; font-size: clamp(20px, 4vw, 38px); }
+        .level-grid.unlocked-2 .gate::before,
+        .level-grid.unlocked-3 .gate::before { content: '▯'; color: #69cf92; transform: translateX(28%); }
+
+        .level-cell.beacon::before { content: '✦'; color: #625b49; font-size: clamp(18px, 3.5vw, 34px); }
+        .level-grid.unlocked-3 .beacon::before {
+            color: #ffe991;
+            text-shadow: 0 0 5px #fff3a8, 0 0 12px #ffbd2e;
+            animation: beaconGlow 0.9s steps(2, end) infinite;
+        }
+
+        @keyframes beaconGlow { 50% { transform: scale(1.17); } }
+
+        .level-cell.safe {
+            box-shadow: inset 0 0 0 3px rgba(126,225,166,0.46);
+        }
+
+        .level-cell.runner {
+            z-index: 2;
+            box-shadow: inset 0 0 0 3px #b7efff, 0 0 12px rgba(183,239,255,0.8);
+        }
+
+        .level-cell.runner::after {
+            content: '♟';
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: clamp(13px, 2.4vw, 22px);
+            text-shadow: 2px 2px #1e4b5b;
+        }
+
+        /* Summary screen */
+        .summary-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .summary-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .summary-title {
+            font-size: 24px;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .summary-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .summary-section-title {
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            letter-spacing: 0;
+        }
+
+        .summary-content {
+            color: var(--text-secondary);
+            font-size: 17px;
+            line-height: 1.7;
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        /* Intro screen */
+        .intro-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .intro-title {
+            font-size: 42px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .intro-subtitle {
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0;
+            margin-bottom: 50px;
+        }
+
+        .intro-text {
+            max-width: 500px;
+            margin: 0 auto 40px;
+            color: var(--text-secondary);
+            font-size: 19px;
+            line-height: 1.8;
+        }
+
+        .intro-concept {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 20px 25px;
+            margin: 40px auto;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .intro-concept p {
+            color: var(--text-secondary);
+            font-size: 17px;
+            font-style: italic;
+        }
+
+        /* Reflection box */
+        .reflection-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .reflection-prompt {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        /* The level 2 preference persists from level 3 onward. Scaling the
+           container lets each component retain its visual hierarchy. */
+        body[data-text-size="small"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .game-container {
+            font-size: 92%;
+        }
+
+        body[data-text-size="large"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .game-container {
+            font-size: 112%;
+        }
+
+        body[data-text-size="small"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active {
+            font-size: 15px;
+        }
+
+        body[data-text-size="large"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active {
+            font-size: 19px;
+        }
+
+        body[data-text-size="small"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level-title {
+            font-size: 27px;
+        }
+
+        body[data-text-size="large"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level-title {
+            font-size: 33px;
+        }
+
+        body[data-text-size="small"][data-room="2"] #level-2 :is(.dyslexia-text, .error-message, .setting-label, .reflection-prompt, .text-input, .repaired-interface, #accessibilityOutcome) { font-size: 14px !important; }
+        body[data-text-size="large"][data-room="2"] #level-2 :is(.dyslexia-text, .error-message, .setting-label, .reflection-prompt, .text-input, .repaired-interface, #accessibilityOutcome) { font-size: 19px !important; }
+        body[data-text-size="small"][data-room="2"] #level-2 :is(.btn, .settings-title, .error-code, .text-size-btn, .voice-input-btn) { font-size: 8px !important; }
+        body[data-text-size="large"][data-room="2"] #level-2 :is(.btn, .settings-title, .error-code, .text-size-btn, .voice-input-btn) { font-size: 11px !important; }
+        body[data-text-size="small"][data-room="2"] #level-2 :is(.mobile-flee-hint, #attemptCounter) { font-size: 11px !important; }
+        body[data-text-size="large"][data-room="2"] #level-2 :is(.mobile-flee-hint, #attemptCounter) { font-size: 15px !important; }
+
+        body[data-text-size="small"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.narrative, .action-caption, .text-input, .summary-content, .reflection-prompt, .setting-label) { font-size: 16px; }
+        body[data-text-size="large"]:is([data-room="2"], [data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.narrative, .action-caption, .text-input, .summary-content, .reflection-prompt, .setting-label) { font-size: 20px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.dialogue-text, .reflection-prompt) { font-size: 14px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.dialogue-text, .reflection-prompt) { font-size: 17px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.dialogue-option, .item-preview, .terminal-body, .terminal-input) { font-size: 13px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.dialogue-option, .item-preview, .terminal-body, .terminal-input) { font-size: 16px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.btn, .input-label, .summary-section-title) { font-size: 8px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.btn, .input-label, .summary-section-title) { font-size: 10px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .summary-title { font-size: 22px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .summary-title { font-size: 27px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.level-tag, .dialogue-speaker, .dialogue-result, .relic-option span, .item-card-header, .settings-title, .voice-input-btn) { font-size: 9px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.level-tag, .relic-option span, .voice-input-btn) { font-size: 10px; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.dialogue-speaker, .dialogue-result, .item-card-header, .settings-title) { font-size: 13px; }
+        body[data-text-size="small"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.inventory-title, .inventory-container p[style*="font-size"], .level-preview > p[style*="font-size"], .validation-message) { font-size: 13px !important; }
+        body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level.active :is(.inventory-title, .inventory-container p[style*="font-size"], .level-preview > p[style*="font-size"], .validation-message) { font-size: 16px !important; }
+
+        /* Responsive */
+        @media (max-width: 760px) {
+            body {
+                background-attachment: scroll;
+                background-position: center top;
+            }
+
+            .game-container {
+                min-height: 100dvh;
+                border: none;
+            }
+
+            .avatar-creator,
+            .dialogue-layout,
+            .preset-card {
+                grid-template-columns: 1fr;
+            }
+
+            .dialogue-avatar-panel {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                text-align: left;
+            }
+
+            .dialogue-avatar {
+                width: 112px;
+                height: 112px;
+                flex: 0 0 auto;
+            }
+
+            .relic-picker {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px 14px 86px;
+            }
+
+            .game-header {
+                align-items: flex-start;
+            }
+
+            .logo {
+                letter-spacing: 1px;
+                overflow-wrap: anywhere;
+            }
+
+            .intro-title {
+                font-size: 28px;
+            }
+
+            .level-title {
+                font-size: 22px;
+            }
+
+            .inventory-slots {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .recovery-file,
+            .interrupt-panel.show {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .recovery-scene {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .trash-station { min-height: 235px; }
+
+            .forge-action-row { gap: 8px; }
+            .forged-token { width: 54%; min-height: 112px; }
+            .forge-drop-target { width: 38%; min-height: 112px; }
+            .forged-token .relic-art { width: 68px; height: 68px; }
+            .forge-arrow { font-size: 16px; }
+
+            .level-preview { padding: 12px; }
+
+            .restored-avatar {
+                grid-template-columns: 82px 1fr;
+            }
+
+            .restored-avatar img {
+                width: 82px;
+                height: 82px;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .text-size-btn,
+            .segmented-btn {
+                flex: 1 1 auto;
+            }
+
+            .text-input::placeholder,
+            .terminal-input::placeholder {
+                color: transparent;
+            }
+
+            .mobile-placeholder {
+                display: block;
+                color: var(--text-muted);
+                font-size: 15px;
+                line-height: 1.35;
+                margin-top: 7px;
+            }
+
+            .option-cycle {
+                grid-template-columns: 38px 1fr 38px;
+            }
+
+            .help-btn {
+                bottom: 18px;
+                right: 18px;
+            }
+
+            .read-btn {
+                bottom: 18px;
+                right: 74px;
+                min-width: 72px;
+            }
+
+            .voice-input-btn {
+                min-height: 38px;
+            }
+
+            body[data-text-size="large"]:is([data-room="3"], [data-room="4"], [data-room="5"], [data-room="final"]) .level-title {
+                font-size: 25px;
+            }
+        }
+
+        @media print {
+            @page {
+                margin: 14mm;
+            }
+
+            * {
+                color: #111 !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+
+            body {
+                background: #fff !important;
+                color: #111 !important;
+            }
+
+            body::before,
+            .game-header,
+            .help-btn,
+            .read-btn,
+            .help-modal,
+            .button-group {
+                display: none !important;
+            }
+
+            .game-container {
+                display: block;
+                max-width: none;
+                min-height: auto;
+                padding: 0;
+                margin: 0;
+                border: none;
+                background: #fff !important;
+                backdrop-filter: none;
+            }
+
+            .level {
+                display: none !important;
+                animation: none !important;
+            }
+
+            #level-final {
+                display: block !important;
+            }
+
+            .summary-container,
+            .summary-content {
+                background: #fff !important;
+                border-color: #999 !important;
+            }
+
+            .summary-section {
+                break-inside: avoid;
+            }
+        }
+
+        /* Fade transitions */
+        .fade-out {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+        }
+
+        .loading::after {
+            content: '';
+            animation: loadingDots 1.5s infinite;
+        }
+
+        @keyframes loadingDots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+
+        /* Blink cursor for terminal */
+        .blink-cursor::after {
+            content: '█';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Screen shake */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="header-left">
+                <button class="nav-back" id="backBtn" onclick="goBackLevel()" aria-label="Torna alla sezione precedente" disabled>&larr;</button>
+                <div class="logo">SISTEMA v3.0.4</div>
+            </div>
+            <div class="progress-indicator" id="progressIndicator">
+                <div class="progress-dot" data-level="0"></div>
+                <div class="progress-dot" data-level="1"></div>
+                <div class="progress-dot" data-level="2"></div>
+                <div class="progress-dot" data-level="3"></div>
+                <div class="progress-dot" data-level="4"></div>
+                <div class="progress-dot" data-level="5"></div>
+            </div>
+        </header>
+
+        <div class="accessibility-bar" id="accessibilityBar" aria-live="polite"></div>
+
+        <!-- Intro Screen -->
+        <div class="level active" id="level-intro">
+            <div class="intro-screen">
+                <h1 class="intro-title">Nessuna corrispondenza</h1>
+                <p class="intro-subtitle">NO MATCHES FOUND</p>
+                
+                <p class="intro-text">
+                    Storie e mondi interattivi possono essere <span class="highlight">specchi</span> in cui riconoscersi, 
+                    e <span class="highlight">finestre</span> da cui guardare oltre il proprio punto di vista.
+                </p>
+
+                <div class="intro-concept">
+                    <p>Questo sistema, però, non tratta tutt* allo stesso modo.<br>
+                    Entra e prova a capire come.</p>
+                </div>
+
+                <button class="btn btn-primary" onclick="startGame()">Inizia il viaggio</button>
+            </div>
+        </div>
+
+        <!-- Level 1: Character Creator -->
+        <div class="level" id="level-1">
+            <p class="level-tag">LIVELLO 01</p>
+            <h2 class="level-title">Character creator</h2>
+            
+            <p class="narrative">
+                Benvenut*. Prima di iniziare il tuo viaggio nel <span class="highlight">sistema</span>, 
+                devi creare il tuo avatar.<br><br>
+                Pensa a te stess* a 10 anni. Inserisci i tuoi dati affinché il motore grafico possa renderizzarti.
+            </p>
+
+            <div id="characterForm">
+                <div class="input-group">
+                    <label class="input-label">01 — AVATAR</label>
+                    <div class="avatar-creator" id="avatarCreator">
+                        <div class="avatar-stage">
+                            <div class="avatar-frame">
+                                <img id="avatarPreview" src="assets/new_avatars/m_brown_hair_green_eyes.png" alt="Anteprima avatar selezionato">
+                            </div>
+                            <p class="avatar-description" id="avatarDescription">
+                                Genere: maschile, capelli castani, occhi verdi.
+                            </p>
+                        </div>
+
+                        <div class="avatar-controls">
+                            <div>
+                                <span class="input-label">GENERE</span>
+                                <div class="segmented" role="group" aria-label="Genere avatar">
+                                    <button type="button" class="segmented-btn active" data-sex="male" onclick="setAvatarSex('male')">Maschile</button>
+                                    <button type="button" class="segmented-btn" data-sex="female" onclick="setAvatarSex('female')">Femminile</button>
+                                    <button type="button" class="segmented-btn" data-sex="other" onclick="setAvatarSex('other')">Altr*</button>
+                                </div>
+                            </div>
+
+                            <div class="option-cycle avatar-pool-control" id="avatarPoolControl" hidden>
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('pool', -1)" aria-label="Avatar precedente">&lsaquo;</button>
+                                <div>
+                                    <span class="option-kicker">Tutte le varianti</span>
+                                    <strong id="poolLabel">1 / 24</strong>
+                                </div>
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('pool', 1)" aria-label="Avatar successivo">&rsaquo;</button>
+                            </div>
+
+                            <div class="option-cycle">
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('hair', -1)" aria-label="Colore capelli precedente">&lsaquo;</button>
+                                <div>
+                                    <span class="option-kicker">Capelli</span>
+                                    <strong id="hairLabel">Castani</strong>
+                                </div>
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('hair', 1)" aria-label="Colore capelli successivo">&rsaquo;</button>
+                            </div>
+
+                            <div class="option-cycle">
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('eyes', -1)" aria-label="Colore occhi precedente">&lsaquo;</button>
+                                <div>
+                                    <span class="option-kicker">Occhi</span>
+                                    <strong id="eyeLabel">Verdi</strong>
+                                </div>
+                                <button type="button" class="cycle-btn" onclick="cycleAvatar('eyes', 1)" aria-label="Colore occhi successivo">&rsaquo;</button>
+                            </div>
+
+                            <button type="button" class="btn btn-secondary" onclick="shuffleAvatar()">Mescola opzioni</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">02 — TRATTO PSICOLOGICO</label>
+                    <input type="text" class="text-input" id="trait-psychological" 
+                           placeholder="Es: timid*, curios*, ansios*...">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">03 — BACKGROUND FAMILIARE/CULTURALE</label>
+                    <input type="text" class="text-input" id="trait-background" 
+                           placeholder="Es: famiglia numerosa, genitori stranieri, cresciut* in campagna...">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateAvatar()">Genera avatar</button>
+                    <button class="btn btn-secondary btn-small btn-disabled" id="compatibilityBtn">
+                        Richiedi compatibilità
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorSection" style="display: none;">
+                <div class="error-box glitch-container" data-text="">
+                    <p class="error-code">ERRORE_04 — Parametri non compatibili</p>
+                    <p class="error-message">Preset caricato: <strong>MODELLO_STANDARD_v3</strong></p>
+                </div>
+
+                <div class="preset-card corrupted-preset">
+                    <img class="preset-avatar" src="assets/new_avatars/preset.png" alt="Preset standard assegnato dal sistema">
+                    <div>
+                        <p class="item-card-header">MODELLO_STANDARD_v3</p>
+                        <p class="preset-description">
+                            Avatar estrovers* e collaborativ*, famiglia tradizionale, gusti comuni, comportamento previsto dal tutorial.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="level-one-glitches" aria-hidden="true">
+                    <span>IDENTITÀ ≠ PRESET</span><span>FILE_04</span><span>NO MATCH</span>
+                </div>
+
+                <div class="recovery-panel" id="recoveryPanel">
+                    <p class="item-card-header">Recupero dati eliminati</p>
+                    <p class="error-message">Trascina il tuo avatar fuori dal cestino e riportalo nello spazio di ripristino.</p>
+                    <div class="recovery-scene">
+                        <div class="trash-station" aria-label="Cestino: contiene un elemento">
+                            <div class="trash-label">CESTINO · 1</div>
+                            <div class="trash-can" aria-hidden="true">
+                                <span class="trash-lid"></span>
+                                <span class="trash-body"><i></i><i></i><i></i></span>
+                            </div>
+                            <div class="discarded-avatar" id="discardedAvatar" role="button" tabindex="0" draggable="true" onclick="restoreAvatar()" aria-label="Avatar originale eliminato. Trascinalo nello spazio di ripristino o premi per recuperarlo">
+                                <img id="discardedAvatarImage" src="" alt="Il tuo avatar eliminato">
+                                <span>avatar_originale.dat</span>
+                            </div>
+                        </div>
+
+                        <div class="restore-target" id="avatarRestoreTarget" tabindex="0" aria-label="Spazio di ripristino">
+                            <span class="restore-crosshair" aria-hidden="true">+</span>
+                            <strong>Spazio di ripristino</strong>
+                            <small>Rilascia qui il personaggio</small>
+                            <div class="restored-avatar" id="restoredAvatar" hidden>
+                                <img id="restoredAvatarImage" src="" alt="Avatar originale ripristinato">
+                                <p>Identità recuperata.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small recovery-fallback" id="restoreAvatarBtn" onclick="restoreAvatar()">Ripristina senza trascinare</button>
+                    <p class="recovery-status" id="recoveryStatus" aria-live="polite">Stato: eliminato dal sistema</p>
+                </div>
+
+                <div class="reflection-box" id="avatarReflection" hidden>
+                    <p class="reflection-prompt">
+                        Il sistema ti ha assegnato un preset.<br><br>
+                        <strong>Che cosa ha cambiato? Che cosa ha cancellato?</strong><br><br>
+                        Scrivi qui sotto cosa ti resta addosso quando un profilo "standard" prende il tuo posto.
+                        E pensa: quante volte ti è capitato di dover "adattarti" per entrare in una storia?
+                    </p>
+                    <textarea class="text-input" id="reflection-1" 
+                              placeholder="Scrivi qui la tua riflessione..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="goToLevel(2)">Prosegui →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 2: Rimappatura Comandi -->
+        <div class="level" id="level-2">
+            <p class="level-tag">LIVELLO 02</p>
+            <h2 class="level-title">Rimappatura comandi</h2>
+            
+            <p class="narrative">
+                <span class="highlight">Tutorial rapido:</span> completa questa semplice azione per procedere.
+            </p>
+
+            <div class="broken-interface" id="brokenInterface">
+                <p class="dyslexia-text" id="brokenText">
+                    <span>C</span><span>l</span><span>i</span><span>c</span><span>c</span><span>a</span> 
+                    <span>i</span><span>l</span> 
+                    <span>p</span><span>u</span><span>l</span><span>s</span><span>a</span><span>n</span><span>t</span><span>e</span> 
+                    <span>p</span><span>e</span><span>r</span> 
+                    <span>p</span><span>r</span><span>o</span><span>c</span><span>e</span><span>d</span><span>e</span><span>r</span><span>e</span>
+                </p>
+                <br><br>
+                <button class="btn btn-primary fleeing-button" id="fleeingBtn" onmouseover="fleeButton()" onpointerdown="mobileFlee(event)" onclick="brokenClick(event)">
+                    Procedi
+                </button>
+                <p id="attemptCounter" style="margin-top: 20px; color: var(--text-muted); font-size: 12px;"></p>
+                <p class="mobile-flee-hint">Su uno schermo touch il pulsante sfugge al dito: prova a raggiungerlo.</p>
+            </div>
+
+            <div id="settingsSection" style="display: none;">
+                <div class="error-box">
+                    <p class="error-code">Impostazioni attive: DEFAULT</p>
+                    <p class="error-message">Prestazioni rilevate: <strong>fallimenti ripetuti</strong><br>
+                    Il sistema suggerisce: adattati</p>
+                </div>
+
+                <div class="settings-panel">
+                    <p class="settings-title">⚙ IMPOSTAZIONI ACCESSIBILITÀ</p>
+                    
+                    <div class="setting-option setting-option-stack">
+                        <span class="setting-label">Dimensione testo</span>
+                        <div class="text-size-options" role="group" aria-label="Dimensione testo">
+                            <button type="button" class="text-size-btn" data-size="small" onclick="setTextSize('small')">
+                                <span class="aa-icon">Aa</span><small>Piccolo</small>
+                            </button>
+                            <button type="button" class="text-size-btn active" data-size="medium" onclick="setTextSize('medium')">
+                                <span class="aa-icon">Aa</span><small>Medio</small>
+                            </button>
+                            <button type="button" class="text-size-btn" data-size="large" onclick="setTextSize('large')">
+                                <span class="aa-icon">Aa</span><small>Grande</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-option">
+                        <span class="setting-label">Contrasto elevato</span>
+                        <button type="button" class="setting-toggle" data-setting="contrast" onclick="toggleSetting(this, 'contrast')" aria-label="Attiva contrasto elevato" aria-pressed="false"></button>
+                    </div>
+                    <div class="setting-option">
+                        <span class="setting-label">Rimappatura tasti</span>
+                        <button type="button" class="setting-toggle" data-setting="keys" onclick="toggleSetting(this, 'keys')" aria-label="Attiva rimappatura tasti" aria-pressed="false"></button>
+                    </div>
+                    <div class="setting-option">
+                        <span class="setting-label">Tempo extra</span>
+                        <button type="button" class="setting-toggle" data-setting="time" onclick="toggleSetting(this, 'time')" aria-label="Attiva tempo extra" aria-pressed="false"></button>
+                    </div>
+                    <div class="setting-option">
+                        <span class="setting-label">Riduci animazioni</span>
+                        <button type="button" class="setting-toggle" data-setting="motion" onclick="toggleSetting(this, 'motion')" aria-label="Attiva riduzione animazioni" aria-pressed="false"></button>
+                    </div>
+                </div>
+
+                <div class="repaired-interface" id="repairedInterface">
+                    <p id="repairedTaskText">Interfaccia riparata: scegli almeno una impostazione e riprova il tutorial.</p>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="completeAccessibleTask()">Procedi con le impostazioni</button>
+                    </div>
+                    <p id="accessibilityOutcome" style="margin-top: 14px; color: var(--accent-green);"></p>
+                </div>
+
+                <div class="reflection-box" id="accessibilityReflection" style="display: none;">
+                    <p class="reflection-prompt">
+                        Hai scelto una modifica che rende il compito fattibile.<br><br>
+                        <strong>Ora pensa oltre al gioco:</strong> Se potessi scegliere, quale elemento del tuo contesto di vita rendesti più accessibile e modificabile?
+                    </p>
+                    <input type="text" class="text-input" id="reflection-2" 
+                           placeholder="Scrivi qui un 'default' da cambiare...">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="goToLevel(3)">Prosegui →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 3: Sindrome dell'NPC -->
+        <div class="level" id="level-3">
+            <p class="level-tag">LIVELLO 03</p>
+            <h2 class="level-title">Sindrome dell'NPC</h2>
+            
+            <p class="narrative">
+                <span class="highlight">Scena evento:</span> debrief missione
+            </p>
+
+            <div class="dialogue-scene">
+                <div class="dialogue-layout">
+                    <div class="dialogue-avatar-panel">
+                        <img id="npcAvatar" class="dialogue-avatar" src="assets/new_avatars/m_brown_hair_green_eyes.png" alt="Il tuo personaggio nella scena">
+                        <p class="action-caption" id="actionCaption">In attesa di una risposta che il sistema permetta.</p>
+                    </div>
+
+                    <div>
+                        <p class="dialogue-speaker">[PERSONAGGIO_PROTAGONISTA]</p>
+                        <p class="dialogue-text" id="heroDialogue">
+                            "E così, grazie al mio coraggio e alla mia determinazione, ho salvato il villaggio! 
+                            È stato difficile, certo, ma ce l'ho fatta. Senza l'aiuto di nessun*, naturalmente. 
+                            Come sempre. La gente mi chiede come faccio, e io dico: talento naturale. 
+                            Ah, tu eri lì? Non mi ricordo... comunque, grazie per... la tua presenza, immagino."
+                        </p>
+                        
+                        <p class="dialogue-speaker" style="color: var(--text-muted);">[IL TUO PERSONAGGIO]</p>
+                        <div class="dialogue-options" id="dialogueOptions">
+                            <button class="dialogue-option" onclick="selectDialogue(this, 'sigh')">[ Sospira ]</button>
+                            <button class="dialogue-option" onclick="selectDialogue(this, 'silence')">[ Resta in silenzio ]</button>
+                            <button class="dialogue-option" onclick="selectDialogue(this, 'smile')">[ Sorridi e ringrazia ]</button>
+                        </div>
+                        <p class="dialogue-result" id="dialogueResult"></p>
+                        <div class="interrupt-panel" id="interruptPanel">
+                            <span id="interruptStatus">Il monologo continua a sovrascrivere la risposta.</span>
+                            <button type="button" class="btn btn-error btn-small" id="interruptBtn" onclick="interruptMonologue()">Interrompi</button>
+                        </div>
+                        <p class="accessibility-secret keys-secret">Scorciatoia sbloccata: premi Alt + P per interrompere.</p>
+                        <p class="accessibility-secret motion-secret">Lo scorrimento automatico è stato fermato dalle impostazioni.</p>
+                        <p class="accessibility-secret time-secret">La finestra di intervento resterà aperta: non c'è fretta.</p>
+                        <p class="accessibility-secret contrast-secret">Messaggio prima invisibile: i permessi possono essere modificati.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="npcReflection" style="display: none;">
+                <div class="error-box">
+                    <p class="error-code" id="dialoguePermission">Permessi dialogo: WRITE</p>
+                    <p class="error-message">Vuoi inviare una <strong>patch</strong>?</p>
+                </div>
+
+                <div class="reflection-box">
+                    <p class="reflection-prompt">
+                        <strong>Scrivi una patch note per la prossima versione:</strong>
+                    </p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">RIGA DI DIALOGO MANCANTE</label>
+                        <input type="text" class="text-input" id="patch-dialogue" 
+                               placeholder="Cosa avrebbe dovuto poter dire il tuo personaggio?">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">MOTIVAZIONE NON RICHIESTA</label>
+                        <input type="text" class="text-input" id="patch-motivation" 
+                               placeholder="Quale motivazione non viene chiesta al tuo personaggio?">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">SCELTA DA RENDERE POSSIBILE</label>
+                        <input type="text" class="text-input" id="patch-choice" 
+                               placeholder="Quale scelta dovrebbe diventare possibile?">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="goToLevel(4)">Invia patch →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 4: L'inventario nascosto -->
+        <div class="level" id="level-4">
+            <p class="level-tag">LIVELLO 04</p>
+            <h2 class="level-title">L'inventario nascosto</h2>
+            
+            <p class="narrative">
+                Missioni completate: <span class="highlight">0</span><br>
+                Inventario: <span class="highlight">vuoto</span><br><br>
+                A volte il sistema racconta il mondo dove non ti aspetti di trovarlo.
+            </p>
+
+            <div class="inventory-container">
+                <div class="inventory-header">
+                    <span class="inventory-title">📦 INVENTARIO</span>
+                    <span id="inventoryCount" style="color: var(--text-muted); font-size: 12px;">Slot: 0/8</span>
+                </div>
+                
+                <div class="inventory-slots">
+                    <button type="button" class="inventory-slot" id="forgedSlot" onclick="revealHiddenProperty()" aria-label="Primo slot vuoto">+</button>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                    <div class="inventory-slot">+</div>
+                </div>
+
+                <div class="relic-picker" aria-label="Scegli una forma simbolica">
+                    <button type="button" class="relic-option active" data-relic="mirror" onclick="selectRelic(this, 'Specchio', '◇', 'mirror')"><i class="relic-art relic-mirror" aria-hidden="true"></i><span>Specchio</span></button>
+                    <button type="button" class="relic-option" data-relic="key" onclick="selectRelic(this, 'Chiave', '⚿', 'key')"><i class="relic-art relic-key" aria-hidden="true"></i><span>Chiave</span></button>
+                    <button type="button" class="relic-option" data-relic="book" onclick="selectRelic(this, 'Libro', '▣', 'book')"><i class="relic-art relic-book" aria-hidden="true"></i><span>Libro</span></button>
+                    <button type="button" class="relic-option" data-relic="lighthouse" onclick="selectRelic(this, 'Faro', '✧', 'lighthouse')"><i class="relic-art relic-lighthouse" aria-hidden="true"></i><span>Faro</span></button>
+                    <button type="button" class="relic-option" data-relic="bridge" onclick="selectRelic(this, 'Ponte', '⌁', 'bridge')"><i class="relic-art relic-bridge" aria-hidden="true"></i><span>Ponte</span></button>
+                </div>
+
+                <div class="item-card">
+                    <p class="item-card-header">✦ FORGIA UN OGGETTO</p>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                        Crea un oggetto che rappresenti l'inclusione o l'identità di una cultura marginalizzata a te cara.
+                    </p>
+                    <p class="item-preview" id="itemPreview">Forma scelta: Specchio. Dagli una storia, poi inseriscilo nello slot.</p>
+                    <p class="accessibility-secret large-text-secret">Nota ora leggibile: una proprietà nascosta non è meno reale.</p>
+
+                    <div class="input-group">
+                        <label class="input-label">NOME DELL'OGGETTO</label>
+                        <input type="text" class="text-input" id="item-name" 
+                               placeholder="Es: ciondolo della nonna, libro proibito...">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">DESCRIZIONE</label>
+                        <textarea class="text-input" id="item-description" 
+                                  placeholder="Descrivi l'aspetto e la storia di questo oggetto..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">PROPRIETÀ NASCOSTA (cosa cambia in chi lo porta?)</label>
+                        <input type="text" class="text-input" id="item-power" 
+                               placeholder="Es: +10 Coraggio quando qualcuno nega la tua storia...">
+                    </div>
+
+                    <div class="forge-workbench" id="forgeWorkbench" hidden>
+                        <p class="workbench-title">Banco di forgiatura</p>
+                        <div class="forge-action-row">
+                            <button type="button" class="forged-token" id="forgedToken" draggable="true" onclick="placeForgedItem()">
+                                <i class="relic-art relic-mirror" aria-hidden="true"></i>
+                                <span>Oggetto forgiato<br><small>Trascina verso lo slot</small></span>
+                            </button>
+                            <span class="forge-arrow" aria-hidden="true">→</span>
+                            <button type="button" class="forge-drop-target" id="forgeDropTarget" onclick="placeForgedItem()" aria-label="Inserisci l'oggetto nello slot dell'inventario">
+                                <span>+</span><small>Slot inventario</small>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="hidden-property" id="hiddenProperty" aria-live="polite"></p>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="goToLevel(5)">Continua →</button>
+            </div>
+        </div>
+
+        <!-- Level 5: Level Design -->
+        <div class="level" id="level-5">
+            <p class="level-tag">LIVELLO 05</p>
+            <h2 class="level-title">Level design</h2>
+            
+            <p class="narrative">
+                <span class="highlight">Fine tutorial.</span><br><br>
+                Da domani non sarai solo un* player: scriverai regole, interfacce, percorsi.
+            </p>
+
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-dot red"></div>
+                    <div class="terminal-dot yellow"></div>
+                    <div class="terminal-dot green"></div>
+                </div>
+                <div class="terminal-body">
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">sistema@inclusione:~$</span> 
+                        <span style="color: var(--text-secondary);">init nuovo_spazio.config</span>
+                    </div>
+
+                    <div class="legacy-defaults" id="legacyDefaults">
+                        default[0] = "un solo percorso"<br>
+                        default[1] = "un solo modo di comunicare"<br>
+                        default[2] = "adattamento richiesto"
+                    </div>
+                    <button type="button" class="btn btn-error btn-small" id="resetDefaultsBtn" onclick="resetDefaults()">Sovrascrivi i vecchi default</button>
+                    <div class="terminal-line">
+                        <span style="color: var(--text-muted);">// Hai 3 righe di codice.</span><br>
+                        <span style="color: var(--text-muted);">// Scrivi 3 cose che il tuo spazio farà di DEFAULT</span><br>
+                        <span style="color: var(--text-muted);">// perché nessun* debba chiedere "permesso di esistere".</span>
+                    </div>
+                    
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">default[0] =</span>
+                        <input type="text" class="terminal-input" id="code-1" 
+                               placeholder="prima regola inclusiva..." disabled>
+                    </div>
+                    
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">default[1] =</span>
+                        <input type="text" class="terminal-input" id="code-2" 
+                               placeholder="seconda regola inclusiva..." disabled>
+                    </div>
+                    
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">default[2] =</span>
+                        <input type="text" class="terminal-input" id="code-3" 
+                               placeholder="terza regola inclusiva..." disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-preview">
+                <p class="settings-title">ANTEPRIMA DELLO SPAZIO</p>
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                    Ogni regola che scrivi apre una parte del percorso. Il livello cambia prima ancora di essere "salvato".
+                </p>
+                <div class="map-legend" aria-hidden="true">
+                    <span>01 · ponte</span><span>02 · cancello</span><span>03 · faro</span>
+                </div>
+                <div class="level-grid" id="designGrid" aria-label="Anteprima della mappa inclusiva"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="finishGame()">Salva e avvia livello →</button>
+            </div>
+        </div>
+
+        <!-- Final Summary -->
+        <div class="level" id="level-final">
+            <div class="summary-container">
+                <div class="summary-header">
+                    <p class="level-tag">SALVATAGGIO COMPLETATO</p>
+                    <h2 class="summary-title">✓ Versione del livello: aggiornata</h2>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">
+                        Alcune scelte sembrano neutrali. Finché non lo sono.
+                    </p>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">01 — IL TUO AVATAR ORIGINALE</p>
+                    <div class="summary-content" id="summary-avatar"></div>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">02 — RIFLESSIONE SUL PRESET</p>
+                    <div class="summary-content" id="summary-reflection1"></div>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">03 — IL DEFAULT DA CAMBIARE</p>
+                    <div class="summary-content" id="summary-default"></div>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">04 — LA TUA PATCH NOTE</p>
+                    <div class="summary-content" id="summary-patch"></div>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">05 — L'OGGETTO FORGIATO</p>
+                    <div class="summary-content" id="summary-item"></div>
+                </div>
+
+                <div class="summary-section">
+                    <p class="summary-section-title">06 — LE TUE REGOLE INCLUSIVE</p>
+                    <div class="summary-content" id="summary-code"></div>
+                </div>
+            </div>
+
+            <div class="button-group" style="justify-content: center;">
+                <button class="btn btn-secondary" onclick="printSummary()">Stampa / salva PDF</button>
+                <button class="btn btn-primary" onclick="restartGame()">Ricomincia</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Read Aloud Button -->
+    <button class="read-btn" id="readBtn" onclick="toggleReadAloud()" aria-label="Leggi ad alta voce il testo della sezione" aria-pressed="false">
+        Leggi
+    </button>
+
+    <!-- Help Button -->
+    <button class="help-btn" onclick="toggleHelp()">?</button>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <button class="help-close" onclick="toggleHelp()">×</button>
+            <h3>// LOG DI SISTEMA</h3>
+            <p id="helpText">
+                Questo gioco esplora la teoria degli "specchi e finestre" di Rudine Sims Bishop: 
+                le storie possono essere specchi in cui riconoscersi, o finestre per guardare 
+                il mondo di un'altra persona.<br><br>
+                Ogni livello ti fa sperimentare cosa significa quando il "default" non è pensato per te: 
+                l'identità cancellata, le barriere invisibili, la voce negata, la storia non raccontata.<br><br>
+                Il tuo compito è notare questi meccanismi — e immaginare alternative.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const gameState = {
+            currentLevel: 0,
+            attempts: 0,
+            maxAttempts: 3,
+            avatarRestored: false,
+            monologueInterrupted: false,
+            itemPlaced: false,
+            defaultsReset: false,
+            finishing: false,
+            avatar: {
+                sex: 'male',
+                body: 'male',
+                hair: 'brown',
+                eyes: 'green'
+            },
+            accessibility: {
+                textSize: 'medium',
+                contrast: false,
+                keys: false,
+                time: false,
+                motion: false,
+                completed: false
+            },
+            chosenRelic: {
+                name: 'Specchio',
+                symbol: '◇',
+                asset: 'mirror'
+            },
+            responses: {
+                physical: '',
+                psychological: '',
+                background: '',
+                reflection1: '',
+                reflection2: '',
+                patchDialogue: '',
+                patchMotivation: '',
+                patchChoice: '',
+                itemName: '',
+                itemDescription: '',
+                itemPower: '',
+                code1: '',
+                code2: '',
+                code3: ''
+            }
+        };
+
+        const helpTexts = {
+            0: "Questo gioco esplora la teoria degli \"specchi e finestre\" di Rudine Sims Bishop: le storie possono essere specchi in cui riconoscersi, o finestre per guardare il mondo di un'altra persona.\n\nOgni livello ti fa sperimentare cosa significa quando il \"default\" non è pensato per te.",
+            1: "Il character creator rappresenta come i media spesso offrono solo opzioni \"standard\". Quando la tua identità non rientra nei preset, vieni cancellat*: è ciò che chi fa ricerca chiama \"annientamento simbolico\".",
+            2: "Le impostazioni di accessibilità non sono \"extra\" per poche persone: sono la prova che ogni interfaccia fa delle scelte. Chi decide cosa è \"normale\" sta decidendo anche chi viene esclus*.",
+            3: "L'NPC (Non-Player Character) è chi esiste nella storia solo per servire chi è protagonista. Quante persone reali vengono trattate così? Chi decide chi ha voce?",
+            4: "Gli oggetti nei giochi raccontano il mondo: ma quale mondo? La \"lore\" è spesso scritta da una sola prospettiva. Cosa manca quando certe storie non vengono raccontate?",
+            5: "Il level design è politico: ogni regola, ogni default, ogni percorso obbligato dice qualcosa su chi è considerat* e chi deve chiedere permesso. Tu puoi progettare diversamente."
+        };
+
+        const hairOptions = [
+            { key: 'blonde', label: 'Biondi' },
+            { key: 'brown', label: 'Castani' },
+            { key: 'black', label: 'Neri' },
+            { key: 'red', label: 'Rossi' }
+        ];
+
+        const eyeOptions = [
+            { key: 'green', label: 'Verdi' },
+            { key: 'blue', label: 'Blu' },
+            { key: 'brown', label: 'Marroni' }
+        ];
+
+        const bodyOptions = [
+            { key: 'male', label: 'Maschile' },
+            { key: 'female', label: 'Femminile' }
+        ];
+
+        const avatarFiles = {
+            male: {
+                black: {
+                    blue: 'm_black_hair_blue_eyes.png',
+                    brown: 'm_black_hair_brown_eyes.png',
+                    green: 'm_black_hair_green_eyes.png'
+                },
+                blonde: {
+                    blue: 'm_blond_hair_blue_eyes.png',
+                    brown: 'm_blonde_hair_brown_eyes.png',
+                    green: 'm_blond_hair_green_eyes.png'
+                },
+                brown: {
+                    blue: 'm_brown_hair_blue_eyes.png',
+                    brown: 'm_brown_hair_brown_eyes.png',
+                    green: 'm_brown_hair_green_eyes.png'
+                },
+                red: {
+                    blue: 'm_red_hair_blue_eyes.png',
+                    brown: 'm_red_hair_brown_eyes.png',
+                    green: 'm_red_hair_green_eyes.png'
+                }
+            },
+            female: {
+                black: {
+                    blue: 'f_black_hair_blue_eyes.png',
+                    brown: 'f_black_hair_brown_eyes.png',
+                    green: 'f_black_hair_green_eyes.png'
+                },
+                blonde: {
+                    blue: 'f_blond_hair_blue_eyes.png',
+                    brown: 'f_blond_hair_brown_eyes.png',
+                    green: 'f_blond_hair_green_eyes.png'
+                },
+                brown: {
+                    blue: 'f_brown_hair_blue_eyes.png',
+                    brown: 'f_brown_hair_brown_eyes.png',
+                    green: 'f_brown_hair_green_eyes.png'
+                },
+                red: {
+                    blue: 'f_red_hair_blue_eyes.png',
+                    brown: 'f_red_hair_brown_eyes.png',
+                    green: 'f_red_hair_green_eyes.png'
+                }
+            }
+        };
+
+        const roomByLevel = {
+            0: 'intro',
+            1: '1',
+            2: '2',
+            3: '3',
+            4: '4',
+            5: '5',
+            6: 'final'
+        };
+
+        function startGame() {
+            goToLevel(1);
+        }
+
+        function goBackLevel() {
+            if (gameState.currentLevel > 0) {
+                goToLevel(gameState.currentLevel - 1);
+            }
+        }
+
+        const requiredFieldsByLevel = {
+            1: ['reflection-1'],
+            2: ['reflection-2'],
+            3: ['patch-dialogue', 'patch-motivation', 'patch-choice'],
+            4: ['item-name', 'item-description', 'item-power'],
+            5: ['code-1', 'code-2', 'code-3']
+        };
+
+        function clearValidation(container) {
+            container?.querySelectorAll('[aria-invalid="true"]').forEach(field => {
+                field.removeAttribute('aria-invalid');
+            });
+            container?.querySelectorAll('.validation-message').forEach(message => message.remove());
+        }
+
+        function showValidationMessage(container, message, focusTarget) {
+            container.querySelectorAll('.validation-message').forEach(item => item.remove());
+            const feedback = document.createElement('p');
+            feedback.className = 'validation-message';
+            feedback.setAttribute('role', 'alert');
+            feedback.textContent = message;
+
+            const actions = [...container.querySelectorAll('.button-group')].at(-1);
+            if (actions) actions.insertAdjacentElement('beforebegin', feedback);
+            else container.appendChild(feedback);
+
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            focusTarget?.focus({ preventScroll: true });
+        }
+
+        function validateFields(ids, container, message) {
+            clearValidation(container);
+            const fields = ids.map(id => document.getElementById(id)).filter(Boolean);
+            const missing = fields.filter(field => !field.value.trim());
+
+            missing.forEach(field => field.setAttribute('aria-invalid', 'true'));
+            if (missing.length) {
+                showValidationMessage(container, message, missing[0]);
+                return false;
+            }
+            return true;
+        }
+
+        function validateLevel(level) {
+            if (level === 0 || level === 6) return true;
+            const levelEl = document.getElementById(levelElementId(level));
+
+            if (level === 2 && !gameState.accessibility.completed) {
+                showValidationMessage(
+                    levelEl,
+                    'Prima di proseguire, modifica almeno un’impostazione e completa il compito accessibile.',
+                    document.querySelector('#repairedInterface .btn')
+                );
+                return false;
+            }
+
+            if (level === 1 && !gameState.avatarRestored) {
+                showValidationMessage(
+                    levelEl,
+                    'Prima recupera il tuo avatar dal cestino, poi completa la riflessione.',
+                    document.getElementById('restoreAvatarBtn')
+                );
+                return false;
+            }
+
+            if (level === 3 && !document.querySelector('.dialogue-option.selected')) {
+                showValidationMessage(
+                    levelEl,
+                    'Prima scegli una risposta nella scena, poi completa la patch note.',
+                    document.querySelector('.dialogue-option')
+                );
+                return false;
+            }
+
+            if (level === 3 && !gameState.monologueInterrupted) {
+                showValidationMessage(
+                    levelEl,
+                    'Interrompi il monologo per ottenere i permessi di scrittura.',
+                    document.getElementById('interruptBtn')
+                );
+                return false;
+            }
+
+            if (level === 4 && !gameState.itemPlaced) {
+                if (validateFields(requiredFieldsByLevel[4], levelEl, 'Completa l’oggetto prima di inserirlo nell’inventario.')) {
+                    showValidationMessage(
+                        levelEl,
+                        'Inserisci l’oggetto forgiato nel primo slot: puoi trascinarlo o premere il pulsante.',
+                        document.getElementById('forgedToken')
+                    );
+                }
+                return false;
+            }
+
+            if (level === 5 && !gameState.defaultsReset) {
+                showValidationMessage(
+                    levelEl,
+                    'Prima sovrascrivi i vecchi default.',
+                    document.getElementById('resetDefaultsBtn')
+                );
+                return false;
+            }
+
+            return validateFields(
+                requiredFieldsByLevel[level] || [],
+                levelEl,
+                'Completa tutte le risposte prima di proseguire.'
+            );
+        }
+
+        function goToLevel(level, options = {}) {
+            const currentLevelEl = document.querySelector('.level.active');
+            const reducedMotion = gameState.accessibility.motion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (level > gameState.currentLevel && !validateLevel(gameState.currentLevel)) {
+                if (options.fromPop) pushLevelState(gameState.currentLevel, true);
+                return;
+            }
+
+            if (!options.fromPop) {
+                pushLevelState(level, options.replace);
+            }
+
+            if (currentLevelEl && !reducedMotion) {
+                currentLevelEl.classList.add('fade-out');
+                setTimeout(() => showLevel(level), 320);
+            } else {
+                showLevel(level);
+            }
+        }
+
+        function pushLevelState(level, replace = false) {
+            const slug = level === 0 ? 'intro' : level === 6 ? 'finale' : `livello-${level}`;
+            const method = replace ? 'replaceState' : 'pushState';
+            history[method]({ level }, '', `#${slug}`);
+        }
+
+        function levelElementId(level) {
+            if (level === 0) return 'level-intro';
+            if (level === 6) return 'level-final';
+            return `level-${level}`;
+        }
+
+        function showLevel(level) {
+            stopReadAloud();
+            stopVoiceInput();
+            gameState.currentLevel = level;
+            if (level === 5) gameState.finishing = false;
+
+            document.querySelectorAll('.level').forEach(el => {
+                el.classList.remove('active', 'fade-out');
+            });
+
+            document.querySelectorAll('.progress-dot').forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i < level) dot.classList.add('completed');
+                if (i === level) dot.classList.add('active');
+            });
+
+            const levelEl = document.getElementById(levelElementId(level));
+            if (levelEl) {
+                levelEl.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            document.body.dataset.room = roomByLevel[level] || 'intro';
+            document.body.dataset.textSize = gameState.accessibility.textSize;
+            updateAccessibilityEffects();
+            document.getElementById('helpText').innerHTML = helpTexts[level] || helpTexts[0];
+            document.getElementById('backBtn').disabled = level === 0;
+
+            if (level === 2 && !document.getElementById('settingsSection').dataset.unlocked) {
+                gameState.attempts = 0;
+                document.getElementById('attemptCounter').textContent = '';
+                document.getElementById('fleeingBtn').style.transform = '';
+                document.getElementById('brokenInterface').style.display = 'block';
+                document.getElementById('settingsSection').style.display = 'none';
+                document.getElementById('accessibilityReflection').style.display = 'none';
+            }
+
+            if (level === 3) {
+                document.getElementById('npcAvatar').src = currentAvatarPath();
+            }
+        }
+
+        function setAvatarSex(sex) {
+            gameState.avatar.sex = sex;
+            if (sex === 'male' || sex === 'female') {
+                gameState.avatar.body = sex;
+            }
+
+            document.querySelectorAll('[data-sex]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.sex === sex);
+            });
+
+            document.getElementById('avatarPoolControl').hidden = sex !== 'other';
+            updateAvatarPreview();
+        }
+
+        function cycleAvatar(type, direction) {
+            if (type === 'pool') {
+                const pool = allowedAvatarPool();
+                const currentIndex = pool.findIndex(matchesCurrentAvatar);
+                const next = pool[(currentIndex + direction + pool.length) % pool.length];
+                applyAvatarCombo(next);
+            }
+            if (type === 'hair') {
+                gameState.avatar.hair = cycleValue(hairOptions, gameState.avatar.hair, direction);
+            }
+            if (type === 'eyes') {
+                gameState.avatar.eyes = cycleValue(eyeOptions, gameState.avatar.eyes, direction);
+            }
+            updateAvatarPreview();
+        }
+
+        function cycleValue(options, current, direction) {
+            const index = options.findIndex(option => option.key === current);
+            return options[(index + direction + options.length) % options.length].key;
+        }
+
+        function shuffleAvatar() {
+            applyAvatarCombo(randomOption(allowedAvatarPool()));
+            updateAvatarPreview();
+        }
+
+        function randomOption(options) {
+            return options[Math.floor(Math.random() * options.length)];
+        }
+
+        function labelFor(options, key) {
+            return options.find(option => option.key === key)?.label || key;
+        }
+
+        function allowedAvatarPool() {
+            const bodies = gameState.avatar.sex === 'other'
+                ? bodyOptions.map(option => option.key)
+                : [gameState.avatar.sex];
+
+            return bodies.flatMap(body =>
+                hairOptions.flatMap(hair =>
+                    eyeOptions.map(eyes => ({
+                        body,
+                        hair: hair.key,
+                        eyes: eyes.key
+                    }))
+                )
+            );
+        }
+
+        function matchesCurrentAvatar(combo) {
+            return combo.body === gameState.avatar.body &&
+                combo.hair === gameState.avatar.hair &&
+                combo.eyes === gameState.avatar.eyes;
+        }
+
+        function applyAvatarCombo(combo) {
+            gameState.avatar.body = combo.body;
+            gameState.avatar.hair = combo.hair;
+            gameState.avatar.eyes = combo.eyes;
+        }
+
+        function currentAvatarIndex() {
+            return allowedAvatarPool().findIndex(matchesCurrentAvatar);
+        }
+
+        function currentAvatarPath() {
+            const { body, hair, eyes } = gameState.avatar;
+            return `assets/new_avatars/${avatarFiles[body][hair][eyes]}`;
+        }
+
+        function currentAvatarDescription() {
+            if (gameState.avatar.sex === 'other') {
+                return `Genere: altr*, avatar ${currentAvatarIndex() + 1}/24, capelli ${labelFor(hairOptions, gameState.avatar.hair).toLowerCase()}, occhi ${labelFor(eyeOptions, gameState.avatar.eyes).toLowerCase()}.`;
+            }
+            return `Genere: ${labelFor(bodyOptions, gameState.avatar.sex).toLowerCase()}, capelli ${labelFor(hairOptions, gameState.avatar.hair).toLowerCase()}, occhi ${labelFor(eyeOptions, gameState.avatar.eyes).toLowerCase()}.`;
+        }
+
+        function updateAvatarPreview() {
+            document.getElementById('avatarPreview').src = currentAvatarPath();
+            document.getElementById('avatarDescription').textContent = currentAvatarDescription();
+            document.getElementById('hairLabel').textContent = labelFor(hairOptions, gameState.avatar.hair);
+            document.getElementById('eyeLabel').textContent = labelFor(eyeOptions, gameState.avatar.eyes);
+            document.getElementById('poolLabel').textContent = `${currentAvatarIndex() + 1} / ${allowedAvatarPool().length}`;
+        }
+
+        function generateAvatar() {
+            const psychological = document.getElementById('trait-psychological').value.trim();
+            const background = document.getElementById('trait-background').value.trim();
+
+            if (!validateFields(
+                ['trait-psychological', 'trait-background'],
+                document.getElementById('characterForm'),
+                'Completa entrambi i campi testuali per generare il tuo avatar.'
+            )) {
+                return;
+            }
+
+            gameState.responses.physical = currentAvatarDescription();
+            gameState.responses.psychological = psychological;
+            gameState.responses.background = background;
+            document.getElementById('discardedAvatarImage').src = currentAvatarPath();
+
+            const container = document.getElementById('gameContainer');
+            container.classList.add('shake');
+            
+            setTimeout(() => {
+                container.classList.remove('shake');
+                document.getElementById('characterForm').style.display = 'none';
+                document.getElementById('errorSection').style.display = 'block';
+            }, 500);
+        }
+
+        function restoreAvatar() {
+            if (gameState.avatarRestored) return;
+            gameState.avatarRestored = true;
+            const button = document.getElementById('restoreAvatarBtn');
+            document.getElementById('restoredAvatarImage').src = currentAvatarPath();
+            document.getElementById('restoredAvatar').hidden = false;
+            document.getElementById('avatarReflection').hidden = false;
+            document.getElementById('avatarRestoreTarget').classList.add('recovered');
+            document.getElementById('discardedAvatar').hidden = true;
+            document.getElementById('recoveryStatus').textContent = 'Stato: avatar_originale.dat ripristinato';
+            button.textContent = 'Ripristinato';
+            button.disabled = true;
+            document.getElementById('avatarReflection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function isTouchLikeInput() {
+            return window.matchMedia('(hover: none), (pointer: coarse)').matches;
+        }
+
+        function moveFleeingButton(pointerX, pointerY) {
+            const btn = document.getElementById('fleeingBtn');
+            const container = document.getElementById('brokenInterface');
+            const rect = container.getBoundingClientRect();
+
+            const rangeX = Math.max(90, (rect.width - btn.offsetWidth) * 0.72);
+            const rangeY = isTouchLikeInput() ? 180 : 115;
+            const current = btn.getBoundingClientRect();
+            const pointerIsLeft = Number.isFinite(pointerX) ? pointerX < current.left + current.width / 2 : Math.random() > 0.5;
+            const direction = pointerIsLeft ? 1 : -1;
+            const distance = rangeX * (0.56 + Math.random() * 0.38);
+            let nextX = direction * distance;
+            let nextY = (Math.random() - 0.38) * rangeY;
+
+            if (Number.isFinite(pointerY) && pointerY > current.top + current.height / 2) nextY = -Math.abs(nextY) - 24;
+            else nextY = Math.abs(nextY) + 18;
+
+            const maxShiftX = Math.max(45, (rect.width - btn.offsetWidth) / 2 - 14);
+            nextX = Math.max(-maxShiftX, Math.min(maxShiftX, nextX));
+            nextY = Math.max(-54, Math.min(rangeY, nextY));
+            btn.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
+        }
+
+        function fleeButton() {
+            if (!isTouchLikeInput()) moveFleeingButton();
+        }
+
+        function registerBrokenAttempt(mode) {
+            gameState.attempts++;
+            const attemptLimit = mode === 'touch' ? 5 : gameState.maxAttempts;
+            const label = mode === 'touch' ? 'Tentativi al tocco' : 'Tentativi';
+            document.getElementById('attemptCounter').textContent =
+                `${label}: ${gameState.attempts}/${attemptLimit}`;
+
+            if (gameState.attempts >= attemptLimit) {
+                document.getElementById('brokenInterface').style.display = 'none';
+                document.getElementById('settingsSection').style.display = 'block';
+                document.getElementById('settingsSection').dataset.unlocked = 'true';
+            } else {
+                const container = document.getElementById('gameContainer');
+                container.classList.add('shake');
+                setTimeout(() => container.classList.remove('shake'), 500);
+            }
+        }
+
+        function mobileFlee(event) {
+            if (!isTouchLikeInput()) return;
+            event.preventDefault();
+            moveFleeingButton(event.clientX, event.clientY);
+            registerBrokenAttempt('touch');
+        }
+
+        function brokenClick(event) {
+            if (isTouchLikeInput()) {
+                event?.preventDefault();
+                return;
+            }
+            registerBrokenAttempt('mouse');
+        }
+
+        function setTextSize(size) {
+            gameState.accessibility.textSize = size;
+            document.body.dataset.textSize = size;
+            document.querySelectorAll('.text-size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.size === size);
+            });
+            updateRepairedInterface();
+            updateAccessibilityEffects();
+        }
+
+        function toggleSetting(el, setting) {
+            el.classList.toggle('active');
+            gameState.accessibility[setting] = el.classList.contains('active');
+            el.setAttribute('aria-pressed', String(gameState.accessibility[setting]));
+            updateRepairedInterface();
+            updateAccessibilityEffects();
+        }
+
+        function selectedAccessibilityLabels() {
+            const labels = [];
+            const sizeLabel = { small: 'testo piccolo', medium: 'testo medio', large: 'testo grande' }[gameState.accessibility.textSize];
+            labels.push(sizeLabel);
+            if (gameState.accessibility.contrast) labels.push('contrasto elevato');
+            if (gameState.accessibility.keys) labels.push('tasti rimappati');
+            if (gameState.accessibility.time) labels.push('tempo extra');
+            if (gameState.accessibility.motion) labels.push('animazioni ridotte');
+            return labels;
+        }
+
+        function updateRepairedInterface() {
+            const panel = document.getElementById('repairedInterface');
+            panel.classList.toggle('large-text', gameState.accessibility.textSize === 'large');
+            panel.classList.toggle('small-text', gameState.accessibility.textSize === 'small');
+            panel.classList.toggle('high-contrast', gameState.accessibility.contrast);
+            document.getElementById('repairedTaskText').textContent =
+                `Interfaccia riparata: ${selectedAccessibilityLabels().join(', ')}.`;
+        }
+
+        function completeAccessibleTask() {
+            const hasChangedDefault = gameState.accessibility.textSize !== 'medium' ||
+                gameState.accessibility.contrast ||
+                gameState.accessibility.keys ||
+                gameState.accessibility.time ||
+                gameState.accessibility.motion;
+
+            if (!hasChangedDefault) {
+                document.getElementById('accessibilityOutcome').textContent = 'Il DEFAULT è ancora identico: scegli almeno una modifica.';
+                return;
+            }
+
+            gameState.accessibility.completed = true;
+            document.getElementById('accessibilityOutcome').textContent = 'Compito completato: il problema non era chi giocava, era il default.';
+            document.getElementById('accessibilityReflection').style.display = 'block';
+            updateAccessibilityEffects();
+        }
+
+        function updateAccessibilityEffects() {
+            const a11y = gameState.accessibility;
+            document.body.dataset.contrast = String(a11y.completed && a11y.contrast);
+            document.body.dataset.largeText = String(a11y.completed && a11y.textSize === 'large');
+            document.body.dataset.keys = String(a11y.completed && a11y.keys);
+            document.body.dataset.time = String(a11y.completed && a11y.time);
+            document.body.dataset.motion = String(a11y.completed && a11y.motion);
+
+            const bar = document.getElementById('accessibilityBar');
+            if (!bar) return;
+            const show = a11y.completed && gameState.currentLevel >= 3 && gameState.currentLevel <= 5;
+            bar.classList.toggle('show', show);
+            bar.innerHTML = show
+                ? `<span>Accessibilità attiva:</span>${selectedAccessibilityLabels().map(label => `<span class="accessibility-chip">[${escapeHTML(label)}]</span>`).join('')}`
+                : '';
+        }
+
+        function selectDialogue(el, choice) {
+            document.querySelectorAll('.dialogue-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            el.classList.add('selected');
+
+            const captions = {
+                sigh: 'Il personaggio sospira. Il sistema registra solo: rumore non verbale.',
+                silence: 'Il personaggio resta fermo. Il sistema scambia il silenzio per consenso.',
+                smile: 'Il personaggio sorride. Il sistema archivia: gratitudine confermata.'
+            };
+
+            const avatar = document.getElementById('npcAvatar');
+            avatar.className = `dialogue-avatar action-${choice}`;
+            document.getElementById('actionCaption').textContent = captions[choice];
+            if (gameState.monologueInterrupted) {
+                document.getElementById('dialogueResult').textContent = 'Canale di scrittura già aperto: la tua patch resta disponibile.';
+                return;
+            }
+            document.getElementById('dialogueResult').textContent = 'OUTPUT BLOCCATO: il protagonista continua a parlare.';
+            document.getElementById('heroDialogue').classList.add('monologuing');
+            document.getElementById('interruptPanel').classList.add('show');
+            document.getElementById('interruptBtn').focus({ preventScroll: true });
+        }
+
+        function interruptMonologue() {
+            if (!document.querySelector('.dialogue-option.selected')) return;
+            gameState.monologueInterrupted = true;
+            document.getElementById('heroDialogue').classList.remove('monologuing');
+            document.getElementById('heroDialogue').textContent = '…';
+            document.getElementById('dialogueResult').textContent = 'MONOLOGO INTERROTTO: canale di scrittura aperto.';
+            document.getElementById('interruptStatus').textContent = 'Il silenzio ora lascia spazio alla tua voce.';
+            document.getElementById('interruptBtn').textContent = 'Interrotto';
+            document.getElementById('interruptBtn').disabled = true;
+            document.getElementById('npcReflection').style.display = 'block';
+            document.getElementById('npcReflection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function selectRelic(el, name, symbol, asset) {
+            if (gameState.itemPlaced) return;
+            gameState.chosenRelic = { name, symbol, asset };
+            document.querySelectorAll('.relic-option').forEach(option => option.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('itemPreview').textContent =
+                `Forma scelta: ${name}. Dagli una storia, poi inseriscilo nello slot.`;
+            const token = document.getElementById('forgedToken');
+            token.innerHTML = `<i class="relic-art relic-${asset}" aria-hidden="true"></i><span>Oggetto forgiato<br><small>Trascina verso lo slot</small></span>`;
+        }
+
+        function updateForgedItemReadiness() {
+            const complete = ['item-name', 'item-description', 'item-power']
+                .every(id => document.getElementById(id)?.value.trim());
+            document.getElementById('forgeWorkbench').hidden = !complete && !gameState.itemPlaced;
+            document.getElementById('forgedToken').classList.toggle('ready', complete && !gameState.itemPlaced);
+            document.getElementById('forgeDropTarget').classList.toggle('drop-ready', complete && !gameState.itemPlaced);
+        }
+
+        function placeForgedItem() {
+            const level = document.getElementById('level-4');
+            if (!validateFields(requiredFieldsByLevel[4], level, 'Completa nome, descrizione e proprietà prima di forgiare l’oggetto.')) return;
+            gameState.itemPlaced = true;
+            const slot = document.getElementById('forgedSlot');
+            slot.innerHTML = `<i class="relic-art relic-${gameState.chosenRelic.asset}" aria-hidden="true"></i>`;
+            slot.classList.add('filled', 'active-relic');
+            slot.classList.remove('drop-ready');
+            slot.setAttribute('aria-label', 'Oggetto inserito. Premi per rivelare la proprietà nascosta.');
+            slot.onclick = revealHiddenProperty;
+            document.getElementById('inventoryCount').textContent = 'Slot: 1/8';
+            document.getElementById('forgedToken').classList.remove('ready');
+            const dropTarget = document.getElementById('forgeDropTarget');
+            document.getElementById('forgeWorkbench').classList.add('placed');
+            dropTarget.classList.add('placed');
+            dropTarget.innerHTML = `<i class="relic-art relic-${gameState.chosenRelic.asset}" aria-hidden="true"></i><small>Inserito</small>`;
+            document.querySelectorAll('.relic-option').forEach(option => option.disabled = true);
+            document.getElementById('itemPreview').textContent = `${gameState.chosenRelic.name} inserito nell’inventario. Premi lo slot per rivelarne la proprietà.`;
+        }
+
+        function revealHiddenProperty() {
+            if (!gameState.itemPlaced) return;
+            const property = document.getElementById('item-power').value.trim();
+            const reveal = document.getElementById('hiddenProperty');
+            reveal.textContent = `Proprietà rivelata: ${property}`;
+            reveal.classList.add('show');
+        }
+
+        function resetDefaults() {
+            gameState.defaultsReset = true;
+            document.getElementById('legacyDefaults').classList.add('overwritten');
+            const button = document.getElementById('resetDefaultsBtn');
+            button.textContent = 'Default sovrascritti';
+            button.disabled = true;
+            document.querySelectorAll('.terminal-input').forEach(input => input.disabled = false);
+            document.getElementById('code-1').focus();
+        }
+
+        function initializeDesignGrid() {
+            const grid = document.getElementById('designGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let i = 0; i < 48; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'level-cell';
+                grid.appendChild(cell);
+            }
+            updateDesignGrid();
+        }
+
+        function updateDesignGrid() {
+            const cells = [...document.querySelectorAll('.level-cell')];
+            const filledRules = ['code-1', 'code-2', 'code-3']
+                .map(id => document.getElementById(id)?.value.trim())
+                .filter(Boolean).length;
+            const pathCells = [40, 41, 33, 34, 26, 27, 19, 11, 12, 13, 14, 15];
+            const waterCells = [3, 4, 5, 6, 7, 10, 18, 34, 35, 36, 42, 43, 44];
+            const rockCells = [1, 8, 16, 17, 23, 30, 38, 46];
+            const treeCells = [0, 2, 9, 21, 22, 24, 29, 31, 32, 37, 39, 45, 47];
+
+            cells.forEach((cell, index) => {
+                cell.className = 'level-cell';
+                if (pathCells.includes(index)) cell.classList.add('path');
+                if (waterCells.includes(index)) cell.classList.add('water');
+                if (rockCells.includes(index)) cell.classList.add('rock');
+                if (treeCells.includes(index)) cell.classList.add('tree');
+            });
+
+            cells[40]?.classList.add('entry');
+            cells[15]?.classList.add('exit');
+            cells[34]?.classList.add('bridge-tile');
+            cells[19]?.classList.add('gate');
+            cells[14]?.classList.add('beacon');
+            document.getElementById('designGrid').className = `level-grid unlocked-${Math.min(filledRules, 3)}`;
+            pathCells.slice(0, 2 + filledRules * 3).forEach(index => cells[index]?.classList.add('safe'));
+        }
+
+        function collectResponses() {
+            gameState.responses.reflection1 = document.getElementById('reflection-1')?.value.trim() || '';
+            gameState.responses.reflection2 = document.getElementById('reflection-2')?.value.trim() || '';
+            gameState.responses.patchDialogue = document.getElementById('patch-dialogue')?.value.trim() || '';
+            gameState.responses.patchMotivation = document.getElementById('patch-motivation')?.value.trim() || '';
+            gameState.responses.patchChoice = document.getElementById('patch-choice')?.value.trim() || '';
+            gameState.responses.itemName = document.getElementById('item-name')?.value.trim() || '';
+            gameState.responses.itemDescription = document.getElementById('item-description')?.value.trim() || '';
+            gameState.responses.itemPower = document.getElementById('item-power')?.value.trim() || '';
+            gameState.responses.code1 = document.getElementById('code-1')?.value.trim() || '';
+            gameState.responses.code2 = document.getElementById('code-2')?.value.trim() || '';
+            gameState.responses.code3 = document.getElementById('code-3')?.value.trim() || '';
+        }
+
+        function animateDesignTraversal(onComplete) {
+            const pathCells = [40, 41, 33, 34, 26, 27, 19, 11, 12, 13, 14, 15];
+            const cells = [...document.querySelectorAll('.level-cell')];
+            if (gameState.accessibility.motion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                cells[pathCells.at(-1)]?.classList.add('runner');
+                onComplete();
+                return;
+            }
+
+            let step = 0;
+            const advance = () => {
+                cells.forEach(cell => cell.classList.remove('runner'));
+                cells[pathCells[step]]?.classList.add('runner');
+                step++;
+                if (step < pathCells.length) window.setTimeout(advance, 85);
+                else window.setTimeout(onComplete, 280);
+            };
+            advance();
+        }
+
+        function escapeHTML(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function finishGame() {
+            if (gameState.finishing || !validateLevel(5)) return;
+            gameState.finishing = true;
+            collectResponses();
+            const response = gameState.responses;
+
+            document.getElementById('summary-avatar').innerHTML = 
+                `<div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                    <img class="preset-avatar" src="${currentAvatarPath()}" alt="Avatar originale selezionato">
+                    <div>
+                        <strong>Avatar scelto:</strong> ${escapeHTML(response.physical || currentAvatarDescription())}<br>
+                        <strong>Psicologico:</strong> ${escapeHTML(response.psychological || '—')}<br>
+                        <strong>Background:</strong> ${escapeHTML(response.background || '—')}
+                    </div>
+                </div>`;
+
+            document.getElementById('summary-reflection1').textContent = 
+                response.reflection1 || '(nessuna risposta)';
+
+            document.getElementById('summary-default').textContent = 
+                response.reflection2 || '(nessuna risposta)';
+
+            document.getElementById('summary-patch').innerHTML = 
+                `<strong>Dialogo mancante:</strong> ${escapeHTML(response.patchDialogue || '—')}<br>
+                 <strong>Motivazione:</strong> ${escapeHTML(response.patchMotivation || '—')}<br>
+                 <strong>Scelta possibile:</strong> ${escapeHTML(response.patchChoice || '—')}`;
+
+            document.getElementById('summary-item').innerHTML = 
+                `<strong>${escapeHTML(gameState.chosenRelic.symbol)} ${escapeHTML(response.itemName || 'Oggetto senza nome')}</strong><br>
+                 ${escapeHTML(response.itemDescription || '(nessuna descrizione)')}<br>
+                 <em>Potere: ${escapeHTML(response.itemPower || '—')}</em>`;
+
+            document.getElementById('summary-code').innerHTML = 
+                `<code>default[0] = "${escapeHTML(response.code1 || '...')}"</code><br>
+                 <code>default[1] = "${escapeHTML(response.code2 || '...')}"</code><br>
+                 <code>default[2] = "${escapeHTML(response.code3 || '...')}"</code>`;
+
+            animateDesignTraversal(() => goToLevel(6));
+        }
+
+        function printSummary() {
+            collectResponses();
+            window.print();
+        }
+
+        function getVisibleSectionText() {
+            const activeLevel = document.querySelector('.level.active');
+            if (!activeLevel) return '';
+
+            const clone = activeLevel.cloneNode(true);
+            clone.querySelectorAll('script, style, img').forEach(el => el.remove());
+
+            const formTexts = [...activeLevel.querySelectorAll('input, textarea')]
+                .map(field => {
+                    const label = field.closest('.input-group')?.querySelector('.input-label')?.textContent.trim();
+                    const value = field.value.trim();
+                    return value ? `${label || 'Campo'}: ${value}` : '';
+                })
+                .filter(Boolean);
+
+            return [clone.innerText, ...formTexts]
+                .join('\n')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function setReadButtonState(isSpeaking) {
+            const btn = document.getElementById('readBtn');
+            btn.classList.toggle('speaking', isSpeaking);
+            btn.textContent = isSpeaking ? 'Stop' : 'Leggi';
+            btn.setAttribute('aria-pressed', String(isSpeaking));
+        }
+
+        function stopReadAloud() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            const btn = document.getElementById('readBtn');
+            if (btn) setReadButtonState(false);
+        }
+
+        function toggleReadAloud() {
+            if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+                alert('La lettura ad alta voce non è supportata da questo browser.');
+                return;
+            }
+
+            if (window.speechSynthesis.speaking) {
+                stopReadAloud();
+                return;
+            }
+
+            const text = getVisibleSectionText();
+            if (!text) return;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 0.92;
+            utterance.pitch = 1;
+            utterance.onend = () => setReadButtonState(false);
+            utterance.onerror = () => setReadButtonState(false);
+
+            setReadButtonState(true);
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setupMobilePlaceholderHints() {
+            document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(field => {
+                if (field.nextElementSibling?.classList.contains('mobile-placeholder')) return;
+
+                const hint = document.createElement('p');
+                hint.className = 'mobile-placeholder';
+                hint.textContent = field.getAttribute('placeholder');
+                field.insertAdjacentElement('afterend', hint);
+            });
+        }
+
+        let activeRecognition = null;
+        let activeVoiceButton = null;
+
+        function setVoiceButtonState(button, listening) {
+            if (!button) return;
+            button.classList.toggle('listening', listening);
+            button.setAttribute('aria-pressed', String(listening));
+            button.innerHTML = listening ? '<span aria-hidden="true">■</span> Stop' : '<span aria-hidden="true">🎙</span> Detta';
+        }
+
+        function stopVoiceInput() {
+            if (activeRecognition) {
+                activeRecognition.abort();
+                activeRecognition = null;
+            }
+            setVoiceButtonState(activeVoiceButton, false);
+            activeVoiceButton = null;
+        }
+
+        function startVoiceInput(field, button) {
+            const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Recognition) return;
+
+            if (activeRecognition) {
+                const sameButton = activeVoiceButton === button;
+                stopVoiceInput();
+                if (sameButton) return;
+            }
+
+            const recognition = new Recognition();
+            const initialValue = field.value.trim();
+            let recognitionFailed = false;
+            activeRecognition = recognition;
+            activeVoiceButton = button;
+            recognition.lang = 'it-IT';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => setVoiceButtonState(button, true);
+            recognition.onresult = event => {
+                const transcript = [...event.results]
+                    .map(result => result[0].transcript)
+                    .join(' ')
+                    .trim();
+                field.value = [initialValue, transcript].filter(Boolean).join(initialValue ? ' ' : '');
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+            };
+            recognition.onerror = event => {
+                if (event.error !== 'aborted') {
+                    recognitionFailed = true;
+                    button.textContent = 'Mic non disponibile';
+                }
+            };
+            recognition.onend = () => {
+                if (activeRecognition === recognition) {
+                    activeRecognition = null;
+                    activeVoiceButton = null;
+                }
+                if (recognitionFailed) {
+                    button.classList.remove('listening');
+                    button.setAttribute('aria-pressed', 'false');
+                    window.setTimeout(() => setVoiceButtonState(button, false), 1800);
+                } else {
+                    setVoiceButtonState(button, false);
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                stopVoiceInput();
+            }
+        }
+
+        function setupVoiceInputs() {
+            const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Recognition) return;
+
+            document.querySelectorAll('.text-input, .terminal-input').forEach(field => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'voice-input-btn';
+                button.setAttribute('aria-label', `Detta la risposta per ${field.getAttribute('placeholder') || 'questo campo'}`);
+                button.setAttribute('aria-pressed', 'false');
+                button.innerHTML = '<span aria-hidden="true">🎙</span> Detta';
+                button.addEventListener('click', () => startVoiceInput(field, button));
+                field.insertAdjacentElement('afterend', button);
+            });
+        }
+
+        function restartGame() {
+            location.assign(location.href.split('#')[0]);
+        }
+
+        function toggleHelp() {
+            document.getElementById('helpModal').classList.toggle('show');
+        }
+
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleHelp();
+            }
+        });
+
+        window.addEventListener('popstate', function(event) {
+            const level = event.state?.level ?? 0;
+            goToLevel(level, { fromPop: true });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('helpText').innerHTML = helpTexts[0];
+            document.body.dataset.room = 'intro';
+            document.body.dataset.textSize = gameState.accessibility.textSize;
+            updateAvatarPreview();
+            updateRepairedInterface();
+            initializeDesignGrid();
+            setupMobilePlaceholderHints();
+            setupVoiceInputs();
+            [
+                'trait-psychological', 'trait-background', 'reflection-1', 'reflection-2',
+                'patch-dialogue', 'patch-motivation', 'patch-choice', 'item-name',
+                'item-description', 'item-power', 'code-1', 'code-2', 'code-3'
+            ].forEach(id => {
+                const field = document.getElementById(id);
+                if (!field) return;
+                field.required = true;
+                field.addEventListener('input', () => field.removeAttribute('aria-invalid'));
+            });
+            ['code-1', 'code-2', 'code-3'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', updateDesignGrid);
+            });
+            ['item-name', 'item-description', 'item-power'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', updateForgedItemReadiness);
+            });
+
+            const token = document.getElementById('forgedToken');
+            const forgeTarget = document.getElementById('forgeDropTarget');
+            token?.addEventListener('dragstart', event => {
+                event.dataTransfer.setData('text/plain', 'forged-item');
+                event.dataTransfer.effectAllowed = 'move';
+            });
+            forgeTarget?.addEventListener('dragenter', event => {
+                event.preventDefault();
+                forgeTarget.classList.add('drag-over');
+            });
+            forgeTarget?.addEventListener('dragover', event => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+            forgeTarget?.addEventListener('dragleave', () => forgeTarget.classList.remove('drag-over'));
+            forgeTarget?.addEventListener('drop', event => {
+                event.preventDefault();
+                forgeTarget.classList.remove('drag-over');
+                if (event.dataTransfer.getData('text/plain') === 'forged-item') placeForgedItem();
+            });
+
+            const discardedAvatar = document.getElementById('discardedAvatar');
+            const avatarTarget = document.getElementById('avatarRestoreTarget');
+            discardedAvatar?.addEventListener('dragstart', event => {
+                event.dataTransfer.setData('text/plain', 'discarded-avatar');
+                event.dataTransfer.effectAllowed = 'move';
+            });
+            discardedAvatar?.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    restoreAvatar();
+                }
+            });
+            avatarTarget?.addEventListener('dragenter', event => {
+                event.preventDefault();
+                avatarTarget.classList.add('drag-over');
+            });
+            avatarTarget?.addEventListener('dragover', event => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+            avatarTarget?.addEventListener('dragleave', () => avatarTarget.classList.remove('drag-over'));
+            avatarTarget?.addEventListener('drop', event => {
+                event.preventDefault();
+                avatarTarget.classList.remove('drag-over');
+                if (event.dataTransfer.getData('text/plain') === 'discarded-avatar') restoreAvatar();
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.altKey && event.key.toLowerCase() === 'p' &&
+                    gameState.currentLevel === 3 && gameState.accessibility.keys) {
+                    event.preventDefault();
+                    interruptMonologue();
+                }
+            });
+            history.replaceState({ level: 0 }, '', '#intro');
+        });
+    </script>
+</body>
+</html>
